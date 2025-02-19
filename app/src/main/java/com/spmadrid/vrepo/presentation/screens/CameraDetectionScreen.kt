@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -38,8 +41,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.spmadrid.vrepo.camera.ObjectDetectionAnalyzer
 import com.spmadrid.vrepo.domain.dtos.BoundingBox
+import com.spmadrid.vrepo.domain.dtos.NotificationEvent
 import com.spmadrid.vrepo.domain.repositories.IObjectDetector
 import com.spmadrid.vrepo.presentation.components.PopupNotification
+import com.spmadrid.vrepo.presentation.components.ShiningFloatingNotification
+import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -48,18 +54,26 @@ import java.util.concurrent.Executors
 
 @Composable
 fun CameraDetectionScreen(
-    objectDetector: IObjectDetector
+    objectDetector: IObjectDetector,
+    cameraViewModel: CameraViewModel
 ) {
-    CameraDetectionContent(objectDetector)
+    CameraDetectionContent(
+        objectDetector,
+        cameraViewModel = cameraViewModel
+    )
 }
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-private fun CameraDetectionContent(objectDetector: IObjectDetector) {
+private fun CameraDetectionContent(
+    objectDetector: IObjectDetector,
+    cameraViewModel: CameraViewModel
+) {
+    val notification by cameraViewModel.notification.collectAsState()
+    val showNotification by cameraViewModel.showNotification.collectAsState()
     val detectedText: MutableStateFlow<String> = remember { MutableStateFlow("") }
     val notificationText: MutableStateFlow<String> = remember { MutableStateFlow("") }
     val detectedTextState = detectedText.collectAsState()
-    val notificationState = notificationText.collectAsState()
     val scope = rememberCoroutineScope()
 
     val cameraExecutor = Executors.newSingleThreadExecutor()
@@ -91,19 +105,20 @@ private fun CameraDetectionContent(objectDetector: IObjectDetector) {
                         previewView = previewView,
                         objectDetector = objectDetector,
                         onDetectedText = { text -> detectedText.value = text },
-                        onNotifyApp = { message ->
-                            scope.launch {
-                                notificationText.value = message
-                                delay(3000)
-                                notificationText.value = ""
-                            }
+                        onNotifyApp = { notificationEvent ->
+                            cameraViewModel.notifyApp(notificationEvent)
                         }
                     )
                 }
             }
         )
 
-        PopupNotification(notificationState.value)
+        notification?.let {
+            ShiningFloatingNotification(
+                showNotification,
+                currentFrame = it.frame,
+            )
+        }
 
         // Display detected text in the center
         if (detectedTextState.value.isNotBlank()) {
@@ -142,7 +157,7 @@ private fun startObjectDetection(
     previewView: PreviewView,
     objectDetector: IObjectDetector,
     onDetectedText: (String) -> Unit,
-    onNotifyApp: (String) -> Unit
+    onNotifyApp: (NotificationEvent) -> Unit
 ): Unit {
     cameraController.imageAnalysisResolutionSelector = ResolutionSelector.Builder()
         .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)

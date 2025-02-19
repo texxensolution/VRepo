@@ -12,6 +12,7 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.spmadrid.vrepo.domain.dtos.BoundingBox
+import com.spmadrid.vrepo.domain.dtos.NotificationEvent
 import com.spmadrid.vrepo.domain.repositories.IObjectDetector
 import com.spmadrid.vrepo.exts.crop
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +27,7 @@ import kotlin.coroutines.suspendCoroutine
 class ObjectDetectionAnalyzer @Inject constructor(
     private val objectDetector: IObjectDetector,
     private val onDetectedText: (String) -> Unit,
-    private val onNotifyApp: (String) -> Unit
+    private val onNotifyApp: (NotificationEvent) -> Unit
 ) : ImageAnalysis.Analyzer {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val textRecognizer: TextRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -62,7 +63,8 @@ class ObjectDetectionAnalyzer @Inject constructor(
                                 val plateCheck = mockPlateCheck(visionText.text)
 
                                 if (plateCheck.status == "POSITIVE") {
-                                    onNotifyApp("${plateCheck.status}: ${plateCheck.plate}")
+                                    val event = NotificationEvent(plateCheck.plate, rotatedBitmap)
+                                    onNotifyApp(event)
                                 }
                             }
                             continuation.resume(visionText)

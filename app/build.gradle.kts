@@ -84,4 +84,6 @@ dependencies {
     // hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
 }
