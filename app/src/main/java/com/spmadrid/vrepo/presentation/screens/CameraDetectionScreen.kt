@@ -11,7 +11,10 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -71,19 +74,11 @@ private fun CameraDetectionContent(
 ) {
     val notification by cameraViewModel.notification.collectAsState()
     val showNotification by cameraViewModel.showNotification.collectAsState()
-    val detectedText: MutableStateFlow<String> = remember { MutableStateFlow("") }
-    val notificationText: MutableStateFlow<String> = remember { MutableStateFlow("") }
-    val detectedTextState = detectedText.collectAsState()
-    val scope = rememberCoroutineScope()
-
+    val detectedText by cameraViewModel.detectedText.collectAsState()
     val cameraExecutor = Executors.newSingleThreadExecutor()
-
     val context: Context = LocalContext.current
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-
-    val cameraController: LifecycleCameraController = remember {
-        LifecycleCameraController(context)
-    }
+    val cameraController: LifecycleCameraController = remember { LifecycleCameraController(context) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
@@ -96,7 +91,7 @@ private fun CameraDetectionContent(
                     )
                     setBackgroundColor(android.graphics.Color.BLACK)
                     implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                    scaleType = PreviewView.ScaleType.FILL_START
+                    scaleType = PreviewView.ScaleType.FILL_CENTER
                 }.also { previewView ->
                     startObjectDetection(
                         cameraExecutor = cameraExecutor,
@@ -104,10 +99,8 @@ private fun CameraDetectionContent(
                         lifecycleOwner = lifecycleOwner,
                         previewView = previewView,
                         objectDetector = objectDetector,
-                        onDetectedText = { text -> detectedText.value = text },
-                        onNotifyApp = { notificationEvent ->
-                            cameraViewModel.notifyApp(notificationEvent)
-                        }
+                        onDetectedText = { text -> cameraViewModel.updateDetectedText(text) },
+                        onNotifyApp = { notificationEvent -> cameraViewModel.notifyApp(notificationEvent) }
                     )
                 }
             }
@@ -116,18 +109,12 @@ private fun CameraDetectionContent(
         notification?.let {
             ShiningFloatingNotification(
                 showNotification,
-                currentFrame = it.frame,
+                notificationEvent = it,
             )
         }
 
-        // Display detected text in the center
-        if (detectedTextState.value.isNotBlank()) {
-            detectedTextState.value.let { text ->
-                LaunchedEffect(text) {
-                    delay(1000) // Remove after 1 second
-                    detectedText.value = ""
-                }
-
+        if (detectedText.isNotBlank()) {
+            detectedText.let { text ->
                 Box(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -158,7 +145,7 @@ private fun startObjectDetection(
     objectDetector: IObjectDetector,
     onDetectedText: (String) -> Unit,
     onNotifyApp: (NotificationEvent) -> Unit
-): Unit {
+) {
     cameraController.imageAnalysisResolutionSelector = ResolutionSelector.Builder()
         .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
         .build()

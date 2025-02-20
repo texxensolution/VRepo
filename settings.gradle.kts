@@ -9,6 +9,8 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        flatDir { dirs("libs") } // Include libs directory
+        maven("https://jitpack.io") // Add JitPack
     }
 }
 dependencyResolutionManagement {

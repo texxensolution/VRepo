@@ -37,13 +37,14 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.spmadrid.vrepo.domain.dtos.NotificationEvent
 import kotlinx.coroutines.delay
 
 
 @Composable
 fun ShiningFloatingNotification(
     showNotification: Boolean,
-    currentFrame: Bitmap,
+    notificationEvent: NotificationEvent,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
 
@@ -93,13 +94,6 @@ fun ShiningFloatingNotification(
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
-//                Image(
-//                     bitmap = currentFrame.asImageBitmap(),
-//                     contentDescription = "Plate Detected",
-//                     modifier = Modifier
-//                         .padding(top = 8.dp)
-//                         .fillMaxSize()
-//                 )
             }
         }
     }

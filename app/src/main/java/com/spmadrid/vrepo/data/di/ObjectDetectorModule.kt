@@ -12,7 +12,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-class ObjectDetectorModule {
+object ObjectDetectorModule {
     @Provides
     fun provideObjectDetector(@ApplicationContext context: Context): IObjectDetector {
         val modelPath = "model_float16.tflite"

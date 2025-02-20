@@ -14,8 +14,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.spmadrid.vrepo.domain.repositories.IObjectDetector
+import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.spmadrid.vrepo.presentation.screens.CameraDetectionScreen
+import com.spmadrid.vrepo.presentation.screens.LoginScreen
 import com.spmadrid.vrepo.presentation.ui.theme.VRepoTheme
+import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
@@ -26,6 +29,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var objectDetector: IObjectDetector
 
+    @Inject
+    lateinit var authenticationService: AuthenticationService
+
     val cameraViewModel: CameraViewModel by viewModels()
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -35,10 +41,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             VRepoTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
-                    CameraDetectionScreen(
-                        objectDetector,
-                        cameraViewModel
-                    )
+                    LoginScreen(authenticationService)
+//                    CameraDetectionScreen(
+//                        objectDetector,
+//                        cameraViewModel
+//                    )
                 }
             }
         }

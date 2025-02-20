@@ -10,14 +10,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @HiltViewModel
 class CameraViewModel @Inject constructor() : ViewModel(){
     private val _detectedText: MutableStateFlow<String> = MutableStateFlow("")
     val detectedText: StateFlow<String> = _detectedText
 
-    fun updateDetectedText(text: String) {
+    fun updateDetectedText(
+        text: String,
+        DETECTED_DELAY: Long = 1_000L
+    ) {
         viewModelScope.launch {
             _detectedText.value = text
+            delay(DETECTED_DELAY)
+            _detectedText.value = ""
         }
     }
 

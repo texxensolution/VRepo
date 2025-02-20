@@ -43,7 +43,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -86,4 +85,9 @@ dependencies {
     kapt(libs.hilt.android.compiler)
 
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
+
+    implementation("com.alibaba:fastjson:1.1.58.android")
+    implementation("androidx.appcompat:appcompat:1.3.1")
 }
