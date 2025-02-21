@@ -1,7 +1,6 @@
 package com.spmadrid.vrepo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.spmadrid.vrepo.domain.repositories.AuthenticationRepository
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

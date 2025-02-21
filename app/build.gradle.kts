@@ -97,4 +97,10 @@ dependencies {
     implementation(libs.ktor.client.auth)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.content.negotiation)
+
+    // GMS - Google Mobile Services
+    implementation(libs.play.services.location)
+
+    // Permissions
+    implementation(libs.accompanist.permissions)
 }

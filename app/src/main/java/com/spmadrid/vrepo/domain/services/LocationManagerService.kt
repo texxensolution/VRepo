@@ -13,7 +13,7 @@ import com.spmadrid.vrepo.domain.interfaces.ILocationManager
 
 class LocationManagerService(
     private val context: Context,
-    private val locationManager: LocationManager
+    private val locationManager: FusedLocation
 ) : ILocationManager {
 
 //    val activity = LocalContext.current as Activity
@@ -22,11 +22,4 @@ class LocationManagerService(
 
     }
 
-//    fun checkLocationPermission() {
-//        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(context, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
-//        } else {
-//
-//        }
-//    }
 }
