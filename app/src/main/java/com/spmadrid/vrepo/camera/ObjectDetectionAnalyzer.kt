@@ -2,7 +2,6 @@ package com.spmadrid.vrepo.camera
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.media.Image
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
@@ -11,9 +10,8 @@ import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import com.spmadrid.vrepo.domain.dtos.BoundingBox
 import com.spmadrid.vrepo.domain.dtos.NotificationEvent
-import com.spmadrid.vrepo.domain.repositories.IObjectDetector
+import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import com.spmadrid.vrepo.exts.crop
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

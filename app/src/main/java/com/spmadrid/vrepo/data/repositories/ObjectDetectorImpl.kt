@@ -2,9 +2,8 @@ package com.spmadrid.vrepo.data.repositories
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.SystemClock
 import com.spmadrid.vrepo.domain.dtos.BoundingBox
-import com.spmadrid.vrepo.domain.repositories.IObjectDetector
+import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
@@ -24,7 +23,7 @@ class ObjectDetectorImpl(
     private val context: Context,
     private val modelPath: String,
     private val labelPath: String,
-) : IObjectDetector{
+) : IObjectDetector {
     private lateinit var interpreter: Interpreter
     private val labels = mutableListOf<String>()
 

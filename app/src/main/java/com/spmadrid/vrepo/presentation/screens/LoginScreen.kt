@@ -1,10 +1,9 @@
 package com.spmadrid.vrepo.presentation.screens
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,6 +13,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,15 +23,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
 import com.spmadrid.vrepo.domain.services.AuthenticationService
+import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun LoginScreen(
-    authenticationService: AuthenticationService
+    authenticationService: AuthenticationService,
+    licensePlateMatchingService: LicensePlateMatchingService
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         activity?.let {
@@ -64,6 +69,26 @@ fun LoginScreen(
                 onClick = { authenticationService.openLarkSSO() },
             ){
                 Text("Login with Lark")
+            }
+
+            Button(
+                modifier = Modifier
+                    .fillMaxSize(),
+                onClick = {
+                    scope.launch {
+                        val response = licensePlateMatchingService.getPlateDetails(PlateCheckInput(
+                            plate = "Y0V029",
+                            detected_type = "plate",
+                            location = listOf(
+                                12.112323,
+                                121.121321321
+                            )
+                        ))
+                        Log.d("GetPlateDetailsRequest", response.toString())
+                    }
+                }
+            ) {
+                Text("Fetch Plate Details")
             }
         }
     }

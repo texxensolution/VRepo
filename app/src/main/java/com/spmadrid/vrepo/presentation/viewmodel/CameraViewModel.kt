@@ -3,6 +3,8 @@ package com.spmadrid.vrepo.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spmadrid.vrepo.domain.dtos.NotificationEvent
+import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
+import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +14,9 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class CameraViewModel @Inject constructor() : ViewModel(){
+class CameraViewModel @Inject constructor(
+    private val licensePlateMatchingService: LicensePlateMatchingService
+) : ViewModel(){
     private val _detectedText: MutableStateFlow<String> = MutableStateFlow("")
     val detectedText: StateFlow<String> = _detectedText
 
@@ -39,12 +43,31 @@ class CameraViewModel @Inject constructor() : ViewModel(){
     private val _showNotification: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val showNotification: StateFlow<Boolean> = _showNotification
 
-    fun notifyApp(notificationEvent: NotificationEvent, timeDelay: Long = 5_000L) {
+    fun notifyApp(
+        notificationEvent: NotificationEvent,
+        timeDelay: Long = 5_000L
+    ) {
         viewModelScope.launch {
             _showNotification.value = true
             updateNotification(notificationEvent)
             delay(timeDelay)
             _showNotification.value = false
+        }
+    }
+
+    fun licensePlateCheck(plateNumber: String, detectedType: String) {
+        viewModelScope.launch {
+            val plateDetails = PlateCheckInput(
+                plate = plateNumber,
+                detected_type = detectedType,
+                location = listOf(
+                    12.123131,
+                    121.12568971
+                )
+            )
+//            licensePlateMatchingService.getPlateDetails(
+//
+//            )
         }
     }
 }

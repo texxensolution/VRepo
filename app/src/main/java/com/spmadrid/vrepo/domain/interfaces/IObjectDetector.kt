@@ -1,4 +1,4 @@
-package com.spmadrid.vrepo.domain.repositories
+package com.spmadrid.vrepo.domain.interfaces
 
 import android.graphics.Bitmap
 import com.spmadrid.vrepo.domain.dtos.BoundingBox

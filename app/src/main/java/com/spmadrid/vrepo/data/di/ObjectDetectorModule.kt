@@ -2,7 +2,7 @@ package com.spmadrid.vrepo.data.di
 
 import android.content.Context
 import com.spmadrid.vrepo.data.repositories.ObjectDetectorImpl
-import com.spmadrid.vrepo.domain.repositories.IObjectDetector
+import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
