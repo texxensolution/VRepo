@@ -13,7 +13,6 @@ import com.spmadrid.vrepo.domain.interfaces.ILocationManager
 
 class LocationManagerService(
     private val context: Context,
-    private val locationManager: FusedLocation
 ) : ILocationManager {
 
 //    val activity = LocalContext.current as Activity

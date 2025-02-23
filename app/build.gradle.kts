@@ -6,6 +6,9 @@ plugins {
     id("kotlin-kapt")
     id("com.google.devtools.ksp")
     alias(libs.plugins.kotlinx.serialization)
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+
 }
 
 android {
@@ -103,4 +106,12 @@ dependencies {
 
     // Permissions
     implementation(libs.accompanist.permissions)
+
+    // Import the Firebase BoM
+    implementation(platform(libs.firebase.bom))
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 }

@@ -75,17 +75,18 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxSize(),
                 onClick = {
-                    scope.launch {
-                        val response = licensePlateMatchingService.getPlateDetails(PlateCheckInput(
-                            plate = "Y0V029",
-                            detected_type = "plate",
-                            location = listOf(
-                                12.112323,
-                                121.121321321
-                            )
-                        ))
-                        Log.d("GetPlateDetailsRequest", response.toString())
-                    }
+                    throw RuntimeException("Test Crash")
+//                    scope.launch {
+//                        val response = licensePlateMatchingService.getPlateDetails(PlateCheckInput(
+//                            plate = "Y0V029",
+//                            detected_type = "plate",
+//                            location = listOf(
+//                                12.112323,
+//                                121.121321321
+//                            )
+//                        ))
+//                        Log.d("GetPlateDetailsRequest", response.toString())
+//                    }
                 }
             ) {
                 Text("Fetch Plate Details")
