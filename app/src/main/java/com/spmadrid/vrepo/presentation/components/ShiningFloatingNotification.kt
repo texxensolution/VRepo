@@ -1,5 +1,10 @@
 package com.spmadrid.vrepo.presentation.components
 
+import android.content.Context
+import android.media.MediaPlayer
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -22,7 +27,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -31,16 +41,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.spmadrid.vrepo.R
 import com.spmadrid.vrepo.domain.dtos.NotificationEvent
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun ShiningFloatingNotification(
+    context: Context,
     showNotification: Boolean,
     notificationEvent: NotificationEvent,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
+    val scope = rememberCoroutineScope()
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var vibrator by remember { mutableStateOf<Vibrator?>(null) }
 
     // Animate gradient offset to create a "shining" effect
     val animatedOffset by infiniteTransition.animateFloat(
@@ -58,11 +74,18 @@ fun ShiningFloatingNotification(
         end = Offset(animatedOffset + 200f, 200f)
     )
 
-    if (showNotification) {
-        LaunchedEffect(Unit) {
-            delay(3000) // Auto-dismiss after 3 seconds
+        LaunchedEffect(showNotification) {
+            if (showNotification) {
+                scope.launch {
+                    vibrator = triggerContinuousVibration(context)
+                    mediaPlayer = playLoopingBuzzSound(context)
+                }
+                delay(3000) // Auto-dismiss after 3 seconds
+                vibrator?.cancel()
+                mediaPlayer?.stop()
+                mediaPlayer?.release()
+            }
         }
-    }
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -90,4 +113,26 @@ fun ShiningFloatingNotification(
             }
         }
     }
+}
+
+fun triggerContinuousVibration(context: Context): Vibrator {
+    val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        val vibManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        vibManager.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    }
+
+    val pattern = longArrayOf(0, 500, 500)
+    val vibrationEffect = VibrationEffect.createWaveform(pattern, 0)
+    vibrator.vibrate(vibrationEffect)
+    return vibrator
+}
+
+fun playLoopingBuzzSound(context: Context): MediaPlayer {
+    val mediaPlayer = MediaPlayer.create(context, R.raw.buzz)
+    mediaPlayer.isLooping = true
+    mediaPlayer.start()
+    return mediaPlayer
 }

@@ -89,7 +89,8 @@ private fun CameraDetectionContent(
 
         notification?.let {
             ShiningFloatingNotification(
-                showNotification,
+                context = context,
+                showNotification = showNotification,
                 notificationEvent = it,
             )
         }

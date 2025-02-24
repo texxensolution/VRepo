@@ -61,7 +61,7 @@ class ObjectDetectionAnalyzer @Inject constructor(
                                 val plateCheck = mockPlateCheck(visionText.text)
 
                                 if (plateCheck.status == "POSITIVE") {
-                                    val event = NotificationEvent(plateCheck.plate, rotatedBitmap)
+                                    val event = NotificationEvent(plateCheck.plate)
                                     onNotifyApp(event)
                                 }
                             }
@@ -74,7 +74,7 @@ class ObjectDetectionAnalyzer @Inject constructor(
                         }
                 }
 
-                Log.d(TAG, "Vision Text Recognition: ${visionText?.text}")
+                Log.d(TAG, "Vision Text Recognized: ${visionText?.text}")
             }
             // Throttling: Wait for a specified period before processing the next image
             delay(THROTTLE_TIMEOUT_MS)

@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 class LicensePlateRepositoryImpl @Inject constructor(
     private val client: HttpClient
-) : LicensePlateRepository{
+) : LicensePlateRepository {
     override suspend fun getPlateDetails(plateDetails: PlateCheckInput): ClientDetailsResponse? {
         val response = client.post {
             url {

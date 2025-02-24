@@ -4,5 +4,4 @@ import android.graphics.Bitmap
 
 data class NotificationEvent(
     val plate: String,
-    val frame: Bitmap
 )
