@@ -1,5 +1,7 @@
 package com.spmadrid.vrepo.domain.dtos
 
+import android.graphics.Bitmap
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 data class AuthenticateDataField(
@@ -36,4 +38,18 @@ data class PlateCheckInput(
     val plate: String,
     val detected_type: String,
     val location: List<Double>
+)
+
+@Serializable
+data class NotifyGroupChatRequest(
+    val plate: String,
+    val image: ByteArray,
+    val detectionType: String,
+    val latitude: Double,
+    val longitude: Double
+)
+
+data class NotifyGroupChatResponse(
+    val message: String,
+    val type: String
 )

@@ -4,21 +4,19 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.location.LocationManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.spmadrid.vrepo.domain.interfaces.ILocationManager
+import com.spmadrid.vrepo.domain.repositories.LocationRepository
+import javax.inject.Inject
 
 
-class LocationManagerService(
-    private val context: Context,
-) : ILocationManager {
-
-//    val activity = LocalContext.current as Activity
-
-    override suspend fun getLocation() {
-
+class LocationManagerService @Inject constructor(
+    private val locationRepository: LocationRepository
+) {
+    suspend fun getCurrentLocation(): Location? {
+        return locationRepository.getCurrentLocation()
     }
-
 }

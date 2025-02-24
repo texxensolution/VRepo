@@ -58,17 +58,17 @@ fun LoginScreen(
     cameraViewModel: CameraViewModel,
     licensePlateMatchingService: LicensePlateMatchingService
 ) {
-    val context = LocalContext.current
-    val activity = context as? Activity
+//    val context = LocalContext.current
+    val activity = context as Activity
     val scope = rememberCoroutineScope()
     val showNotification = cameraViewModel.showNotification.collectAsState()
     val notification = cameraViewModel.notification.collectAsState()
 
-    LaunchedEffect(Unit) {
-        activity?.let {
-            authenticationService.initialize(activity)
-        }
-    }
+//    LaunchedEffect(Unit) {
+//        activity?.let {
+//            authenticationService.initialize()
+//        }
+//    }
 
 
 
@@ -123,7 +123,7 @@ fun LoginScreen(
                     containerColor = Color.Blue,
                     contentColor = Color.White
                 ),
-                onClick = { authenticationService.openLarkSSO() },
+                onClick = { authenticationService.openLarkSSO(activity) },
             ) {
                 Text(
                     "Login with Lark",

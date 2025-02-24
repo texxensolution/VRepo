@@ -1,10 +1,13 @@
 package com.spmadrid.vrepo.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spmadrid.vrepo.domain.dtos.NotificationEvent
+import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
+import com.spmadrid.vrepo.domain.services.LocationManagerService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CameraViewModel @Inject constructor(
-    private val licensePlateMatchingService: LicensePlateMatchingService
+    private val plateMatchingService: LicensePlateMatchingService,
+    private val locationService: LocationManagerService
 ) : ViewModel(){
     private val _detectedText: MutableStateFlow<String> = MutableStateFlow("")
     val detectedText: StateFlow<String> = _detectedText
@@ -55,19 +59,47 @@ class CameraViewModel @Inject constructor(
         }
     }
 
-    fun licensePlateCheck(plateNumber: String, detectedType: String) {
+    fun processing(
+        text: String,
+        detectedType: String,
+        frame: ByteArray
+    ) {
+        updateDetectedText(text)
+
         viewModelScope.launch {
-            val plateDetails = PlateCheckInput(
-                plate = plateNumber,
+            val location = locationService.getCurrentLocation()
+            if (location == null) {
+                Log.d(TAG, "Location is null!")
+                return@launch
+            }
+
+            val details = PlateCheckInput(
+                plate = text,
                 detected_type = detectedType,
-                location = listOf(
-                    12.123131,
-                    121.12568971
-                )
+                location = listOf(location.latitude, location.longitude)
             )
-//            licensePlateMatchingService.getPlateDetails(
-//
-//            )
+
+            try {
+                if (plateMatchingService.isPositive(details)) {
+                    notifyApp(NotificationEvent(text))
+
+                    plateMatchingService.sendAlertToGroupChat(
+                        NotifyGroupChatRequest(
+                            plate = text,
+                            image = frame,
+                            detectionType = detectedType,
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        )
+                    )
+                }
+            } catch (err: Exception) {
+                Log.d(TAG, "HTTP Request: $err")
+            }
         }
+    }
+
+    companion object {
+        const val TAG = "CameraViewModel"
     }
 }

@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,10 +30,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LifecycleOwner
 import com.spmadrid.vrepo.camera.ObjectDetectionAnalyzer
-import com.spmadrid.vrepo.domain.dtos.NotificationEvent
+import com.spmadrid.vrepo.domain.dtos.DetectedTextResult
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import com.spmadrid.vrepo.presentation.components.ShiningFloatingNotification
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
+import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -53,6 +55,7 @@ private fun CameraDetectionContent(
     objectDetector: IObjectDetector,
     cameraViewModel: CameraViewModel
 ) {
+    val scope = rememberCoroutineScope()
     val notification by cameraViewModel.notification.collectAsState()
     val showNotification by cameraViewModel.showNotification.collectAsState()
     val detectedText by cameraViewModel.detectedText.collectAsState()
@@ -80,8 +83,14 @@ private fun CameraDetectionContent(
                         lifecycleOwner = lifecycleOwner,
                         previewView = previewView,
                         objectDetector = objectDetector,
-                        onDetectedText = { text -> cameraViewModel.updateDetectedText(text) },
-                        onNotifyApp = { notificationEvent -> cameraViewModel.notifyApp(notificationEvent) }
+                        onDetectedText = { result ->
+                            scope.launch {
+                                cameraViewModel.processing(
+                                    text = result.text,
+                                    detectedType = result.detectedType,
+                                    frame = result.frame
+                                )
+                            } },
                     )
                 }
             }
@@ -125,8 +134,7 @@ private fun startObjectDetection(
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
     objectDetector: IObjectDetector,
-    onDetectedText: (String) -> Unit,
-    onNotifyApp: (NotificationEvent) -> Unit
+    onDetectedText: (DetectedTextResult) -> Unit,
 ) {
     cameraController.imageAnalysisResolutionSelector = ResolutionSelector.Builder()
         .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
@@ -137,7 +145,6 @@ private fun startObjectDetection(
         ObjectDetectionAnalyzer(
             objectDetector = objectDetector,
             onDetectedText = onDetectedText,
-            onNotifyApp = onNotifyApp
         )
     )
     cameraController.bindToLifecycle(lifecycleOwner)

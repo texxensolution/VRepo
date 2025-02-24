@@ -2,7 +2,9 @@ package com.spmadrid.vrepo
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,6 +23,7 @@ import com.spmadrid.vrepo.presentation.screens.LoginScreen
 import com.spmadrid.vrepo.presentation.screens.PermissionScreen
 import com.spmadrid.vrepo.presentation.ui.theme.VRepoTheme
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
+import com.ss.android.larksso.LarkSSO
 import dagger.hilt.android.AndroidEntryPoint
 import io.ktor.client.HttpClient
 import javax.inject.Inject
@@ -40,6 +43,31 @@ class MainActivity : ComponentActivity() {
     lateinit var client: HttpClient
 
     val cameraViewModel: CameraViewModel by viewModels()
+
+    override fun onResume() {
+        super.onResume()
+        LarkSSO.inst().parseIntent(this, intent)
+    }
+
+//    @Suppress("MissingSuperCall")
+//    override fun onNewIntent(intent: Intent?) {
+//        if (intent != null) {
+//            super.onNewIntent(intent)
+//        }
+//        intent?.let {
+//            LarkSSO.inst().parseIntent(this, it)
+//        }
+//    }
+
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        data?.let {
+            LarkSSO.inst().parseIntent(this, it)
+            Log.d("MainActivity", it.data.toString())
+//            viewModel.handleIntent(it)  // Pass data to ViewModel
+        }
+    }
 
     @OptIn(ExperimentalPermissionsApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -72,10 +100,6 @@ class MainActivity : ComponentActivity() {
                             licensePlateMatchingService = licensePlateMatchingService
                         )
                     }
-//                    CameraDetectionScreen(
-//                        objectDetector,
-//                        cameraViewModel
-//                    )
                 }
             }
         }

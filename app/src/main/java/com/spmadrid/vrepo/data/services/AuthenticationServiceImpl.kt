@@ -41,12 +41,15 @@ class AuthenticationServiceImpl @Inject constructor(
         Log.d(TAG, "Lark Device ID: $deviceId")
     }
 
-    override fun openLarkSSO() {
+    override fun openLarkSSO(activity: Activity) {
+        initialize(activity)
         LarkSSO.inst().startSSOVerify(builder, object : IGetDataCallback {
             override fun onSuccess(data: CallBackData?) {
+                Log.d(TAG, "Code: ${data?.code.toString()}")
             }
 
             override fun onError(exc: CallBackData?) {
+                Log.d(TAG, exc.toString())
             }
         })
     }

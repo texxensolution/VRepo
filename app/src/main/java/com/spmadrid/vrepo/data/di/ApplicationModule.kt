@@ -11,9 +11,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(ActivityComponent::class)
 object ApplicationModule {
-    @Provides
-    @Singleton
-    fun provideActivity(activity: Activity): Activity {
-        return activity
-    }
+//    @Provides
+//    fun provideActivity(activity: Activity): Activity = activity
 }

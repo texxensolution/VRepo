@@ -69,3 +69,9 @@ fun Bitmap.saveToStorage(fileName: String = UUID.randomUUID().toString()): Boole
         false // Failed to save
     }
 }
+
+fun Bitmap.toByteArray(): ByteArray {
+    val outputStream = java.io.ByteArrayOutputStream()
+    this.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+    return outputStream.toByteArray()
+}
