@@ -4,11 +4,14 @@ import android.graphics.Bitmap
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
+
+@Serializable
 data class AuthenticateDataField(
     val access_token: String,
     val token_type: String
 )
 
+@Serializable
 data class AuthenticateResponse(
     val status: String,
     val msg: String,
@@ -49,6 +52,7 @@ data class NotifyGroupChatRequest(
     val longitude: Double
 )
 
+@Serializable
 data class NotifyGroupChatResponse(
     val message: String,
     val type: String

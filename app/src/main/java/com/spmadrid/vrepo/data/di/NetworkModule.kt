@@ -8,6 +8,8 @@ import com.spmadrid.vrepo.data.repositories.LocationRepositoryImpl
 import com.spmadrid.vrepo.domain.repositories.LicensePlateRepository
 import com.spmadrid.vrepo.domain.repositories.LocationRepository
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
+import com.spmadrid.vrepo.domain.services.TokenManagerService
+import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,6 +24,8 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 
@@ -30,7 +34,9 @@ import javax.inject.Singleton
 object NetworkModule {
     @Provides
     @Singleton
-    fun provideKtorClient(): HttpClient {
+    fun provideKtorClient(
+        tokenManagerService: TokenManagerService
+    ): HttpClient {
         return HttpClient(CIO) {
             defaultRequest {
                 host = "elephant-humble-herring.ngrok-free.app"
@@ -41,8 +47,12 @@ object NetworkModule {
             install(Auth) {
                 bearer {
                     loadTokens {
-                        val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoib25fZTc0OTdiODQ0YmVlZjZlNDdhOTE1ZjY3MzYxYzhjNjYiLCJ1c2VyX3R5cGUiOiJpbnRlcm5hbCIsImV4cCI6MjA1NTQ3NzE4Nn0.7REIFUOCze2GQdmeoLdkaih1uHzI0nlXPMSHCLgm6Q8"
-                        BearerTokens(token, "")
+                        val token = runBlocking {
+                            tokenManagerService.tokenFlow.firstOrNull()
+                        }
+                        token?.let {
+                            BearerTokens(it, "")
+                        }
                     }
                 }
             }

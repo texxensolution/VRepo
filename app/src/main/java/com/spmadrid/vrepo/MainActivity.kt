@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -19,13 +20,16 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
+import com.spmadrid.vrepo.presentation.screens.CameraDetectionScreen
 import com.spmadrid.vrepo.presentation.screens.LoginScreen
 import com.spmadrid.vrepo.presentation.screens.PermissionScreen
 import com.spmadrid.vrepo.presentation.ui.theme.VRepoTheme
+import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
 import com.ss.android.larksso.LarkSSO
 import dagger.hilt.android.AndroidEntryPoint
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 @AndroidEntryPoint()
@@ -43,21 +47,13 @@ class MainActivity : ComponentActivity() {
     lateinit var client: HttpClient
 
     val cameraViewModel: CameraViewModel by viewModels()
+    val authViewModel: AuthenticateViewModel by viewModels()
 
     override fun onResume() {
         super.onResume()
         LarkSSO.inst().parseIntent(this, intent)
     }
 
-//    @Suppress("MissingSuperCall")
-//    override fun onNewIntent(intent: Intent?) {
-//        if (intent != null) {
-//            super.onNewIntent(intent)
-//        }
-//        intent?.let {
-//            LarkSSO.inst().parseIntent(this, it)
-//        }
-//    }
 
     @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -65,7 +61,6 @@ class MainActivity : ComponentActivity() {
         data?.let {
             LarkSSO.inst().parseIntent(this, it)
             Log.d("MainActivity", it.data.toString())
-//            viewModel.handleIntent(it)  // Pass data to ViewModel
         }
     }
 
@@ -85,6 +80,7 @@ class MainActivity : ComponentActivity() {
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     )
                 )
+                val tokenState = authViewModel.tokenState.collectAsState()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     if (!cameraPermissionState.status.isGranted || !locationPermissionState.allPermissionsGranted) {
@@ -92,13 +88,18 @@ class MainActivity : ComponentActivity() {
                             cameraPermissionState,
                             locationPermissionState)
                     } else {
-                        LoginScreen(
-                            context = this,
-                            client = client,
-                            authenticationService = authenticationService,
-                            cameraViewModel = cameraViewModel,
-                            licensePlateMatchingService = licensePlateMatchingService
-                        )
+                        if (tokenState.value == null) {
+                            LoginScreen(
+                                context = this,
+                                cameraViewModel = cameraViewModel,
+                                authViewModel = authViewModel
+                            )
+                        } else {
+                            CameraDetectionScreen(
+                                objectDetector = objectDetector,
+                                cameraViewModel = cameraViewModel
+                            )
+                        }
                     }
                 }
             }

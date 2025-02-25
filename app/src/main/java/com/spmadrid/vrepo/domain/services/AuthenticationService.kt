@@ -3,6 +3,7 @@ package com.spmadrid.vrepo.domain.services
 import android.app.Activity
 
 interface AuthenticationService {
-    fun openLarkSSO(activity: Activity)
+    suspend fun getOAuthCodeFromLark(activity: Activity): String?
+    suspend fun getAccessToken(code: String): String?
     fun initialize(activity: Activity)
 }
