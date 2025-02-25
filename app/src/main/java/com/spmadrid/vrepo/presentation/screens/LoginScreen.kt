@@ -2,11 +2,18 @@ package com.spmadrid.vrepo.presentation.screens
 
 import android.app.Activity
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,6 +23,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,21 +41,10 @@ import com.spmadrid.vrepo.domain.dtos.NotificationEvent
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
 import com.spmadrid.vrepo.presentation.components.ShiningFloatingNotification
+import com.spmadrid.vrepo.presentation.ui.theme.Roboto
 import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
-import io.ktor.client.HttpClient
-import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.client.request.forms.formData
-import io.ktor.client.request.post
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.Headers
-import io.ktor.http.HttpHeaders
-import io.ktor.http.appendPathSegments
-import io.ktor.http.contentType
-import io.ktor.utils.io.InternalAPI
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+
 
 
 @Composable
@@ -56,21 +54,19 @@ fun LoginScreen(
     authViewModel: AuthenticateViewModel
 ) {
 //    val context = LocalContext.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
     val activity = context as Activity
-    val scope = rememberCoroutineScope()
     val showNotification = cameraViewModel.showNotification.collectAsState()
     val notification = cameraViewModel.notification.collectAsState()
 
+    val buttonColor = if (isPressed) Color.Blue.copy(0.5f) else Color.Blue.copy(0.02f)
+
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .background(color = Color.White),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(R.drawable.bg),
-            contentDescription = "Background Image",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
         notification.value?.let {
             ShiningFloatingNotification(
                 showNotification = showNotification.value,
@@ -80,55 +76,77 @@ fun LoginScreen(
         }
         Column(
             modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(fraction = 0.75f)
                 .padding(horizontal = 12.dp, vertical = 32.dp)
                 .background(color = Color.White.copy(alpha = 0.95f), shape = RoundedCornerShape(12.dp))
                 .clip(shape = RoundedCornerShape(12.dp))
-                .border(2.dp, Color.White, RoundedCornerShape(12.dp)) // Add a border
+                .border(2.dp, Color.White, RoundedCornerShape(12.dp)), // Add a border,
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                "\uD83D\uDC4B",
-                fontSize = 32.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
-                    .padding(top = 12.dp)
-            )
-            Text(
-                "Welcome to VisionAI",
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 12.dp).padding(top = 10.dp),
-                color = Color.Black
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "VRepo",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 42.sp,
+                    fontFamily = Roboto,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 12.dp).padding(top = 10.dp),
+                    color = Color.Black
+                )
+
+                Image(
+                    painter = painterResource(R.drawable.eye_logo),
+                    contentDescription = "VRepo Logo",
+                    modifier = Modifier.fillMaxWidth(0.6f),
+                    alignment = Alignment.Center
+                )
+            }
+
+
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp, start = 16.dp, end = 16.dp)
-                    .padding(bottom = 12.dp),
+                    .padding(14.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Blue,
-                    contentColor = Color.White
+                    containerColor = buttonColor,
+                    contentColor = Color.Black,
                 ),
+                border = BorderStroke(2.dp, Color.Blue),
                 onClick = {
                     authViewModel.signInWithLark(activity)
                 },
             ) {
-                Text(
-                    "Login with Lark",
-                    fontWeight = FontWeight.Bold
-                )
-            }
+//                Text(
+//                    "Login with Lark",
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 18.sp,
+//                    modifier = Modifier.padding(vertical = 7.dp)
+//                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.lark_logo),
+                        contentDescription = "VRepo Logo",
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        alignment = Alignment.Center
+                    )
 
-            Button(
-                modifier = Modifier,
-                onClick = {
-                    cameraViewModel.notifyApp(NotificationEvent("ABC1234"))
+                    Spacer(modifier = Modifier.padding(end = 8.dp))
+
+                    Text(
+                        "Login with Lark",
+                        color = Color.Blue,
+                        fontFamily = Roboto
+                    )
+
                 }
-            ) {
-                Text("send an image example!")
+
             }
         }
     }
