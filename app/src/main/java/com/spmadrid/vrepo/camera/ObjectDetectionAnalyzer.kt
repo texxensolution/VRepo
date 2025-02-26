@@ -14,12 +14,15 @@ import com.spmadrid.vrepo.domain.dtos.DetectedTextResult
 import com.spmadrid.vrepo.domain.dtos.NotificationEvent
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import com.spmadrid.vrepo.exts.crop
+import com.spmadrid.vrepo.exts.removeDiacritics
+import com.spmadrid.vrepo.exts.removeSpecialCharacters
 import com.spmadrid.vrepo.exts.toByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -65,9 +68,16 @@ class ObjectDetectionAnalyzer @Inject constructor(
                 }
 
                 if (visionText != null) {
+                    val normalized = visionText.text
+                        .removeDiacritics()
+                        .removeSpecialCharacters()
+                        .uppercase(Locale.ROOT)
+
+                    if (normalized.isBlank()) return@launch
+
                     onDetectedText(
                         DetectedTextResult(
-                            visionText.text,
+                            normalized,
                             box.clsName,
                             rotatedBitmap.toByteArray()
                         )

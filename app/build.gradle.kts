@@ -115,4 +115,10 @@ dependencies {
     implementation(libs.firebase.crashlytics)
 
     implementation(libs.androidx.security.crypto)
+
+    implementation(libs.font.awesome)
+
+    // google maps
+    implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
 }

@@ -10,7 +10,7 @@ import java.io.IOException
 import java.util.UUID
 
 val TAG = "Bitmap"
-
+const val PADDING = 10
 fun Bitmap.crop(boundingBox: BoundingBox): Bitmap {
     // Get the cropping coordinates from the scaleBoundingBox function
     Log.d(TAG, "Cropped using provided bounding box!")
@@ -24,8 +24,8 @@ fun Bitmap.crop(boundingBox: BoundingBox): Bitmap {
         this,
         left,
         top,
-        right - left,
-        bottom - top
+        right - left + PADDING,
+        bottom - top + PADDING
     )
 }
 

@@ -1,5 +1,6 @@
 package com.spmadrid.vrepo.presentation.components
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaPlayer
 import android.os.VibrationEffect
@@ -47,6 +48,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun ShiningFloatingNotification(
     context: Context,
@@ -105,7 +107,7 @@ fun ShiningFloatingNotification(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    "🚨 PLATE: NBC 1234 - POSITIVE 🚨",
+                    "🚨 PLATE: ${notificationEvent.plate} - POSITIVE 🚨",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center

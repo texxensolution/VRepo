@@ -35,11 +35,11 @@ class LicensePlateRepositoryImpl @Inject constructor(
             contentType(ContentType.Application.Json)
             setBody(plateDetails)
         }
-        Log.d(TAG, response.toString())
         if (response.status == HttpStatusCode.Forbidden && !response.status.isSuccess()) {
             return false
         }
         val body = response.body<ClientDetailsResponse>()
+        Log.d(TAG, "isPositive: $body")
         return body.status == "POSITIVE"
     }
 
