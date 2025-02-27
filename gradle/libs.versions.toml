@@ -16,6 +16,7 @@ activityCompose = "1.10.0"
 composeBom = "2024.04.01"
 lucide = "1.1.0"
 mapsCompose = "2.14.0"
+osmdroidAndroid = "6.1.16"
 playServicesMaps = "19.1.0"
 securityCrypto = "1.1.0-alpha06"
 tensorflowLite = "2.16.1"
@@ -62,6 +63,7 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 lucide = { module = "br.com.devsrsouza.compose.icons:lucide", version.ref = "lucide" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
+osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroid" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
 tensorflow-lite-api = { module = "org.tensorflow:tensorflow-lite-api", version.ref = "tensorflowLiteApi" }

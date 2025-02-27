@@ -44,6 +44,12 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        jniLibs {
+            excludes += listOf("lib/x86/**", "lib/x86_64/**", "lib/armeabi-v7a/**")
+        }
+        resources.excludes.add("META-INF/DEPENDENCIES")
+    }
 }
 
 dependencies {
@@ -118,7 +124,5 @@ dependencies {
 
     implementation(libs.font.awesome)
 
-    // google maps
-    implementation(libs.play.services.maps)
-    implementation(libs.maps.compose)
+    implementation(libs.osmdroid.android)
 }

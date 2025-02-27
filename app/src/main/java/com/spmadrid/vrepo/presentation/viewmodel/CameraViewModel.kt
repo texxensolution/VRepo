@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.spmadrid.vrepo.domain.dtos.NotificationEvent
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
+import com.spmadrid.vrepo.domain.dtos.PlateStatus
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
 import com.spmadrid.vrepo.domain.services.LocationManagerService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -80,18 +81,35 @@ class CameraViewModel @Inject constructor(
             )
 
             try {
-                if (plateMatchingService.isPositive(details)) {
-                    notifyApp(NotificationEvent(text))
+                val status = plateMatchingService.getStatus(details)
 
-                    plateMatchingService.sendAlertToGroupChat(
-                        NotifyGroupChatRequest(
-                            plate = text,
-                            image = frame,
-                            detectionType = detectedType,
-                            latitude = location.latitude,
-                            longitude = location.longitude
+                when(status) {
+                    PlateStatus.POSITIVE -> {
+                        notifyApp(NotificationEvent(text))
+                        plateMatchingService.sendAlertToGroupChat(
+                            NotifyGroupChatRequest(
+                                plate = text,
+                                image = frame,
+                                detectionType = detectedType,
+                                latitude = location.latitude,
+                                longitude = location.longitude
+                            )
                         )
-                    )
+                    }
+                    PlateStatus.FOR_CONFIRMATION -> {
+                        plateMatchingService.sendAlertToGroupChat(
+                            NotifyGroupChatRequest(
+                                plate = text,
+                                image = frame,
+                                detectionType = detectedType,
+                                latitude = location.latitude,
+                                longitude = location.longitude
+                            )
+                        )
+                    }
+                    PlateStatus.NEGATIVE -> {
+                        Log.d("Plate Scanned Status", "Negative")
+                    }
                 }
             } catch (err: Exception) {
                 Log.d(TAG, "HTTP Request: $err")

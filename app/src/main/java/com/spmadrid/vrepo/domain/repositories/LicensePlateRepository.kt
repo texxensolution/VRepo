@@ -4,8 +4,9 @@ import com.spmadrid.vrepo.domain.dtos.ClientDetailsResponse
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatResponse
 import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
+import com.spmadrid.vrepo.domain.dtos.PlateStatus
 
 interface LicensePlateRepository {
-    suspend fun isPositive(plateDetails: PlateCheckInput): Boolean
+    suspend fun getStatus(plateDetails: PlateCheckInput): PlateStatus
     suspend fun sendAlertToGroupChat(notifyGroupChatRequest: NotifyGroupChatRequest): NotifyGroupChatResponse?
 }

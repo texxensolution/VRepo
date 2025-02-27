@@ -24,8 +24,8 @@ fun Bitmap.crop(boundingBox: BoundingBox): Bitmap {
         this,
         left,
         top,
-        right - left + PADDING,
-        bottom - top + PADDING
+        right - left,
+        bottom - top
     )
 }
 

@@ -1,6 +1,7 @@
 package com.spmadrid.vrepo
 
 import android.Manifest
+import org.osmdroid.config.Configuration
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
@@ -20,6 +21,8 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
+import com.spmadrid.vrepo.domain.services.LocationManagerService
+import com.spmadrid.vrepo.domain.services.ServerInfoService
 import com.spmadrid.vrepo.presentation.screens.CameraDetectionScreen
 import com.spmadrid.vrepo.presentation.screens.LoginScreen
 import com.spmadrid.vrepo.presentation.screens.PermissionScreen
@@ -46,6 +49,12 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var client: HttpClient
 
+    @Inject
+    lateinit var serverInfoService: ServerInfoService
+
+    @Inject
+    lateinit var locationManagerService: LocationManagerService
+
     val cameraViewModel: CameraViewModel by viewModels()
     val authViewModel: AuthenticateViewModel by viewModels()
 
@@ -70,6 +79,7 @@ class MainActivity : ComponentActivity() {
         savedInstanceState: Bundle?
     ) {
         super.onCreate(savedInstanceState)
+        Configuration.getInstance().userAgentValue = "VRepo"
         enableEdgeToEdge()
         setContent {
             VRepoTheme {
@@ -97,7 +107,9 @@ class MainActivity : ComponentActivity() {
                         } else {
                             CameraDetectionScreen(
                                 objectDetector = objectDetector,
-                                cameraViewModel = cameraViewModel
+                                cameraViewModel = cameraViewModel,
+                                serverInfoService = serverInfoService,
+                                locationManagerService = locationManagerService
                             )
                         }
                     }

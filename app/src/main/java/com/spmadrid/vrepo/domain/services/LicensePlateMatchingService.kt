@@ -8,6 +8,6 @@ import javax.inject.Inject
 class LicensePlateMatchingService @Inject constructor(
     private val licensePlateRepository: LicensePlateRepository
 ){
-    suspend fun isPositive(plateDetails: PlateCheckInput) = licensePlateRepository.isPositive(plateDetails)
+    suspend fun getStatus(plateDetails: PlateCheckInput) = licensePlateRepository.getStatus(plateDetails)
     suspend fun sendAlertToGroupChat(notifyGroupChatRequest: NotifyGroupChatRequest) = licensePlateRepository.sendAlertToGroupChat(notifyGroupChatRequest)
 }

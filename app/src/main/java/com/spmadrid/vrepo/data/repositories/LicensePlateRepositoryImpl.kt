@@ -5,6 +5,7 @@ import com.spmadrid.vrepo.domain.dtos.ClientDetailsResponse
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatResponse
 import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
+import com.spmadrid.vrepo.domain.dtos.PlateStatus
 import com.spmadrid.vrepo.domain.repositories.LicensePlateRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -27,7 +28,7 @@ import javax.inject.Inject
 class LicensePlateRepositoryImpl @Inject constructor(
     private val client: HttpClient
 ) : LicensePlateRepository {
-    override suspend fun isPositive(plateDetails: PlateCheckInput): Boolean {
+    override suspend fun getStatus(plateDetails: PlateCheckInput): PlateStatus {
         val response = client.post {
             url {
                 appendPathSegments("api", "v4", "plate", "check")
@@ -36,11 +37,17 @@ class LicensePlateRepositoryImpl @Inject constructor(
             setBody(plateDetails)
         }
         if (response.status == HttpStatusCode.Forbidden && !response.status.isSuccess()) {
-            return false
+            return PlateStatus.NEGATIVE
         }
+
         val body = response.body<ClientDetailsResponse>()
         Log.d(TAG, "isPositive: $body")
-        return body.status == "POSITIVE"
+
+        return when (body.status) {
+            "POSITIVE" -> PlateStatus.POSITIVE
+            "FOR_CONFIRMATION" -> PlateStatus.FOR_CONFIRMATION
+            else -> PlateStatus.NEGATIVE
+        }
     }
 
     @OptIn(InternalAPI::class)

@@ -2,6 +2,7 @@ package com.spmadrid.vrepo.presentation.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.location.Location
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.camera.core.ImageAnalysis
@@ -41,43 +42,53 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.LifecycleOwner
 import com.spmadrid.vrepo.camera.ObjectDetectionAnalyzer
 import com.spmadrid.vrepo.domain.dtos.DetectedTextResult
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
+import com.spmadrid.vrepo.domain.services.LocationManagerService
+import com.spmadrid.vrepo.domain.services.ServerInfoService
+import com.spmadrid.vrepo.presentation.components.OpenStreetMapView
+import com.spmadrid.vrepo.presentation.components.ServerStatusIndicator
 import com.spmadrid.vrepo.presentation.components.ShiningFloatingNotification
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
-import compose.icons.AllIcons
 import compose.icons.FontAwesomeIcons
-import compose.icons.fontawesomeicons.AllIcons
-import compose.icons.fontawesomeicons.Brands
-import compose.icons.fontawesomeicons.Regular
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Compress
 import compose.icons.fontawesomeicons.solid.Expand
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+
 @Composable
 fun CameraDetectionScreen(
     objectDetector: IObjectDetector,
-    cameraViewModel: CameraViewModel
+    cameraViewModel: CameraViewModel,
+    serverInfoService: ServerInfoService,
+    locationManagerService: LocationManagerService
 ) {
-    CameraDetectionContent(
-        objectDetector,
-        cameraViewModel = cameraViewModel
-    )
+        CameraDetectionContent(
+            objectDetector,
+            cameraViewModel = cameraViewModel,
+            serverInfoService = serverInfoService,
+            locationManagerService = locationManagerService
+        )
 }
+
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 private fun CameraDetectionContent(
     objectDetector: IObjectDetector,
-    cameraViewModel: CameraViewModel
+    cameraViewModel: CameraViewModel,
+    serverInfoService: ServerInfoService,
+    locationManagerService: LocationManagerService
 ) {
     val scope = rememberCoroutineScope()
-    var isFullscreen by remember { mutableStateOf(true) }
+    var isFullscreen by remember { mutableStateOf(false) }
     val previewViewRef = remember { mutableStateOf<PreviewView?>(null) }
     val notification by cameraViewModel.notification.collectAsState()
     val showNotification by cameraViewModel.showNotification.collectAsState()
@@ -100,10 +111,12 @@ private fun CameraDetectionContent(
         Box(
             modifier = Modifier
                 .then(if (isFullscreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth(0.4f).fillMaxHeight(0.3f) )
-                .padding(vertical = 0.dp, horizontal = 10.dp)
+                .padding(horizontal = 10.dp)
+                .padding(bottom = 15.dp)
                 .statusBarsPadding()
                 .clip(RoundedCornerShape(16.dp)) // Rounded corners
                 .border(2.dp, Color.White, RoundedCornerShape(16.dp)) // Border with rounded cornersr
+                .zIndex(2f)
         ) {
             AndroidView(
                 modifier = Modifier.matchParentSize(),
@@ -170,7 +183,6 @@ private fun CameraDetectionContent(
             }
         }
 
-
         notification?.let {
             ShiningFloatingNotification(
                 context = context,
@@ -179,11 +191,30 @@ private fun CameraDetectionContent(
             )
         }
 
+        ServerStatusIndicator(
+            isFullscreen = isFullscreen,
+            modifier = Modifier
+                .zIndex(15f)
+                .statusBarsPadding()
+                .padding(end = 10.dp)
+                .align(Alignment.TopEnd)
+                .clip(RoundedCornerShape(10.dp)) // Rounded corners
+                .border(
+                    2.dp,
+                    Color.White,
+                    RoundedCornerShape(10.dp)
+                ),
+            serverInfoService = serverInfoService
+        )
+
+        OpenStreetMapView(locationManagerService)
+
         if (detectedText.isNotBlank()) {
             detectedText.let { text ->
                 Box(
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .zIndex(10f),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

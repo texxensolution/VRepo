@@ -24,3 +24,9 @@ data class Coordinate(
     val latitude: Double,
     val longitude: Double
 )
+
+enum class PlateStatus {
+    POSITIVE,
+    FOR_CONFIRMATION,
+    NEGATIVE
+}

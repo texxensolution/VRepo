@@ -70,35 +70,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideLicensePlateRepository(client: HttpClient): LicensePlateRepository {
-        return LicensePlateRepositoryImpl(client)
-    }
-
-    @Provides
-    @Singleton
-    fun provideLicensePlateMatchingService(
-        licensePlateRepository: LicensePlateRepository
-    ): LicensePlateMatchingService {
-        return LicensePlateMatchingService (
-            licensePlateRepository
-        )
-    }
-
-    @Provides
-    @Singleton
     fun provideFusedLocationProviderClient(@ApplicationContext context: Context): FusedLocationProviderClient {
         return LocationServices.getFusedLocationProviderClient(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideLocationRepository(
-        @ApplicationContext context: Context,
-        fusedLocationProviderClient: FusedLocationProviderClient
-    ): LocationRepository {
-        return LocationRepositoryImpl(
-            context,
-            fusedLocationProviderClient
-        )
     }
 }
