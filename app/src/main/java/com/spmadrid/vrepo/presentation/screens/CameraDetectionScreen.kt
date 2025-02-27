@@ -2,7 +2,6 @@ package com.spmadrid.vrepo.presentation.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.location.Location
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.camera.core.ImageAnalysis
@@ -10,9 +9,12 @@ import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -36,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -52,12 +56,13 @@ import com.spmadrid.vrepo.domain.services.ServerInfoService
 import com.spmadrid.vrepo.presentation.components.OpenStreetMapView
 import com.spmadrid.vrepo.presentation.components.ServerStatusIndicator
 import com.spmadrid.vrepo.presentation.components.ShiningFloatingNotification
+import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Compress
+import compose.icons.fontawesomeicons.solid.DoorOpen
 import compose.icons.fontawesomeicons.solid.Expand
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -67,12 +72,14 @@ import java.util.concurrent.Executors
 fun CameraDetectionScreen(
     objectDetector: IObjectDetector,
     cameraViewModel: CameraViewModel,
+    authViewModel: AuthenticateViewModel,
     serverInfoService: ServerInfoService,
     locationManagerService: LocationManagerService
 ) {
         CameraDetectionContent(
             objectDetector,
             cameraViewModel = cameraViewModel,
+            authViewModel = authViewModel,
             serverInfoService = serverInfoService,
             locationManagerService = locationManagerService
         )
@@ -84,11 +91,13 @@ fun CameraDetectionScreen(
 private fun CameraDetectionContent(
     objectDetector: IObjectDetector,
     cameraViewModel: CameraViewModel,
+    authViewModel: AuthenticateViewModel,
     serverInfoService: ServerInfoService,
     locationManagerService: LocationManagerService
 ) {
     val scope = rememberCoroutineScope()
     var isFullscreen by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
     val previewViewRef = remember { mutableStateOf<PreviewView?>(null) }
     val notification by cameraViewModel.notification.collectAsState()
     val showNotification by cameraViewModel.showNotification.collectAsState()
@@ -191,21 +200,74 @@ private fun CameraDetectionContent(
             )
         }
 
-        ServerStatusIndicator(
-            isFullscreen = isFullscreen,
-            modifier = Modifier
-                .zIndex(15f)
-                .statusBarsPadding()
-                .padding(end = 10.dp)
-                .align(Alignment.TopEnd)
-                .clip(RoundedCornerShape(10.dp)) // Rounded corners
-                .border(
-                    2.dp,
-                    Color.White,
-                    RoundedCornerShape(10.dp)
-                ),
-            serverInfoService = serverInfoService
-        )
+
+        if (!isFullscreen) {
+            Column(modifier = Modifier.align(Alignment.TopEnd).zIndex(15f)) {
+                ServerStatusIndicator(
+                    isFullscreen = isFullscreen,
+                    modifier = Modifier
+                        .zIndex(15f)
+                        .statusBarsPadding()
+                        .padding(end = 10.dp)
+                        .clip(RoundedCornerShape(10.dp)) // Rounded corners
+                        .border(
+                            2.dp,
+                            Color.White,
+                            RoundedCornerShape(10.dp)
+                        ),
+                    serverInfoService = serverInfoService
+                )
+                Button(
+                    onClick = {
+                        showDialog = true
+                    },
+                    modifier = Modifier
+                        .padding(0.dp)
+                        .padding(top = 10.dp)
+                        .size(40.dp)
+                        .border(2.dp, Color.White, RoundedCornerShape(12.dp)) // Border stroke
+                        .padding(0.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red // Change button background color
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Image(
+                        imageVector = FontAwesomeIcons.Solid.DoorOpen,
+                        contentDescription = "logout button",
+                        modifier = Modifier.size(18.dp).padding(0.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
+                    )
+                }
+            }
+        }
+
+//        logout dialog
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Confirm Logout") },
+                text = { Text("Are you sure you want to logout?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            authViewModel.clearToken()
+                            showDialog = false
+                            // Handle logout logic here
+                        }
+                    ) {
+                        Text("Logout")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
 
         OpenStreetMapView(locationManagerService)
 

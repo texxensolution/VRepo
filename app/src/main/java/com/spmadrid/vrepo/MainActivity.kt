@@ -81,6 +81,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         Configuration.getInstance().userAgentValue = "VRepo"
         enableEdgeToEdge()
+
         setContent {
             VRepoTheme {
                 val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
@@ -90,13 +91,15 @@ class MainActivity : ComponentActivity() {
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     )
                 )
+
                 val tokenState = authViewModel.tokenState.collectAsState()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     if (!cameraPermissionState.status.isGranted || !locationPermissionState.allPermissionsGranted) {
                         PermissionScreen(
                             cameraPermissionState,
-                            locationPermissionState)
+                            locationPermissionState
+                        )
                     } else {
                         if (tokenState.value == null) {
                             LoginScreen(
@@ -108,6 +111,7 @@ class MainActivity : ComponentActivity() {
                             CameraDetectionScreen(
                                 objectDetector = objectDetector,
                                 cameraViewModel = cameraViewModel,
+                                authViewModel = authViewModel,
                                 serverInfoService = serverInfoService,
                                 locationManagerService = locationManagerService
                             )
