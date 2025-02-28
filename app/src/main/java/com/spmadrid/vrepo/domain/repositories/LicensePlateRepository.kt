@@ -8,5 +8,6 @@ import com.spmadrid.vrepo.domain.dtos.PlateStatus
 
 interface LicensePlateRepository {
     suspend fun getStatus(plateDetails: PlateCheckInput): PlateStatus
+    suspend fun getClientDetails(plateDetails: PlateCheckInput): ClientDetailsResponse?
     suspend fun sendAlertToGroupChat(notifyGroupChatRequest: NotifyGroupChatRequest): NotifyGroupChatResponse?
 }

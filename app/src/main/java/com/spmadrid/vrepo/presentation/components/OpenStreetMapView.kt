@@ -26,6 +26,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.spmadrid.vrepo.domain.services.LocationManagerService
 import kotlinx.coroutines.delay
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
@@ -60,7 +61,16 @@ fun OpenStreetMapView(locationManagerService: LocationManagerService) {
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
 
-                setTileSource(TileSourceFactory.MAPNIK)
+                val voyagerDark = XYTileSource(
+                    "CartoVoyager",
+                    1, 20, 256, ".png",
+                    arrayOf("https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/",
+                        "https://b.basemaps.cartocdn.com/rastertiles/voyager_nolabels/",
+                        "https://c.basemaps.cartocdn.com/rastertiles/voyager_nolabels/",
+                        "https://d.basemaps.cartocdn.com/rastertiles/voyager_nolabels/")
+                )
+
+                setTileSource(voyagerDark)
                 setMultiTouchControls(true)
             }
         },

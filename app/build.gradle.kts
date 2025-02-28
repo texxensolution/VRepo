@@ -125,4 +125,7 @@ dependencies {
     implementation(libs.font.awesome)
 
     implementation(libs.osmdroid.android)
+
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.material3)
 }

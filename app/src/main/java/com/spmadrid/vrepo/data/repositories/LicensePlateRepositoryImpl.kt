@@ -50,6 +50,24 @@ class LicensePlateRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getClientDetails(plateDetails: PlateCheckInput): ClientDetailsResponse? {
+        val response = client.post {
+            url {
+                appendPathSegments("api", "v4", "plate", "check")
+            }
+            contentType(ContentType.Application.Json)
+            setBody(plateDetails)
+        }
+        if (response.status == HttpStatusCode.Forbidden && !response.status.isSuccess()) {
+            return null
+        }
+
+        val body = response.body<ClientDetailsResponse>()
+        Log.d(TAG, "isPositive: $body")
+
+        return body
+    }
+
     @OptIn(InternalAPI::class)
     override suspend fun sendAlertToGroupChat(notifyGroupChatRequest: NotifyGroupChatRequest): NotifyGroupChatResponse? {
         val uuid = UUID.randomUUID().toString()

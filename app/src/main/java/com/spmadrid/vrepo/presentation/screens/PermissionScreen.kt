@@ -1,8 +1,6 @@
 package com.spmadrid.vrepo.presentation.screens
 
-import android.Manifest
-import android.graphics.Paint.Align
-import android.widget.Space
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,8 +20,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.accompanist.permissions.rememberPermissionState
+
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -51,7 +48,9 @@ fun PermissionScreen(
             Text("Camera Permission Granted: ")
             Text(if (cameraPermissionState.status.isGranted) "✅" else "❌")
         }
+
         Spacer(modifier = Modifier.padding(top = 8.0.dp))
+
         if (!cameraPermissionState.status.isGranted) {
             Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
                 Text("Request Camera Permission")
@@ -65,7 +64,9 @@ fun PermissionScreen(
             Text("Location Permission Granted: ")
             Text(if (locationPermissionState.allPermissionsGranted) "✅" else "❌")
         }
+
         Spacer(modifier = Modifier.padding(top = 10.0.dp))
+
         if (!locationPermissionState.allPermissionsGranted) {
             Button(onClick = { locationPermissionState.launchMultiplePermissionRequest() }) {
                 Text("Request Location Permissions")

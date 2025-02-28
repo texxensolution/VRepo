@@ -11,19 +11,30 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
+import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import com.spmadrid.vrepo.domain.dtos.BottomNavItem
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
 import com.spmadrid.vrepo.domain.services.LocationManagerService
 import com.spmadrid.vrepo.domain.services.ServerInfoService
+import com.spmadrid.vrepo.presentation.components.BottomNavigationBar
 import com.spmadrid.vrepo.presentation.screens.CameraDetectionScreen
+import com.spmadrid.vrepo.presentation.screens.ConductionStickerScreen
 import com.spmadrid.vrepo.presentation.screens.LoginScreen
 import com.spmadrid.vrepo.presentation.screens.PermissionScreen
 import com.spmadrid.vrepo.presentation.ui.theme.VRepoTheme
@@ -80,11 +91,15 @@ class MainActivity : ComponentActivity() {
     ) {
         super.onCreate(savedInstanceState)
         Configuration.getInstance().userAgentValue = "VRepo"
-        enableEdgeToEdge()
-
+//        enableEdgeToEdge()
         setContent {
             VRepoTheme {
-                val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+                val navController = rememberNavController()
+                val currentBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = currentBackStackEntry?.destination?.route
+
+                val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+
                 val locationPermissionState = rememberMultiplePermissionsState(
                     permissions = listOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -94,20 +109,24 @@ class MainActivity : ComponentActivity() {
 
                 val tokenState = authViewModel.tokenState.collectAsState()
 
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    if (!cameraPermissionState.status.isGranted || !locationPermissionState.allPermissionsGranted) {
-                        PermissionScreen(
-                            cameraPermissionState,
-                            locationPermissionState
-                        )
-                    } else {
-                        if (tokenState.value == null) {
-                            LoginScreen(
-                                context = this,
-                                cameraViewModel = cameraViewModel,
-                                authViewModel = authViewModel
+                Scaffold(
+                    bottomBar = {
+                        if (currentRoute != "permission") {
+                            BottomNavigationBar(navController)
+                        }
+                    }
+                ) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = if(isPermissionDenied(cameraPermissionState, locationPermissionState)) "permission" else BottomNavItem.Home.route,
+                    ) {
+                        composable("permission") {
+                            PermissionScreen(
+                                cameraPermissionState,
+                                locationPermissionState
                             )
-                        } else {
+                        }
+                        composable(BottomNavItem.Home.route) {
                             CameraDetectionScreen(
                                 objectDetector = objectDetector,
                                 cameraViewModel = cameraViewModel,
@@ -116,9 +135,43 @@ class MainActivity : ComponentActivity() {
                                 locationManagerService = locationManagerService
                             )
                         }
+                        composable(BottomNavItem.Conduction.route) {
+                            ConductionStickerScreen(plateMatchingService = licensePlateMatchingService, locationManagerService = locationManagerService)
+                        }
                     }
+
+//                    if (!cameraPermissionState.status.isGranted || !locationPermissionState.allPermissionsGranted) {
+//                        PermissionScreen(
+//                            cameraPermissionState,
+//                            locationPermissionState
+//                        )
+//                    } else {
+//                        if (tokenState.value == null) {
+//                            LoginScreen(
+//                                context = this,
+//                                cameraViewModel = cameraViewModel,
+//                                authViewModel = authViewModel
+//                            )
+//                        } else {
+//                            CameraDetectionScreen(
+//                                objectDetector = objectDetector,
+//                                cameraViewModel = cameraViewModel,
+//                                authViewModel = authViewModel,
+//                                serverInfoService = serverInfoService,
+//                                locationManagerService = locationManagerService
+//                            )
+//                        }
+//                    }
                 }
             }
         }
     }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+fun isPermissionDenied(
+    cameraPermissionState: PermissionState,
+    locationPermissionState: MultiplePermissionsState
+): Boolean {
+    return !cameraPermissionState.status.isGranted || !locationPermissionState.allPermissionsGranted
 }

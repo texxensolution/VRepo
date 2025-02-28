@@ -121,12 +121,6 @@ fun LoginScreen(
                     authViewModel.signInWithLark(activity)
                 },
             ) {
-//                Text(
-//                    "Login with Lark",
-//                    fontWeight = FontWeight.Bold,
-//                    fontSize = 18.sp,
-//                    modifier = Modifier.padding(vertical = 7.dp)
-//                )
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -144,9 +138,7 @@ fun LoginScreen(
                         color = Color.Blue,
                         fontFamily = Roboto
                     )
-
                 }
-
             }
         }
     }

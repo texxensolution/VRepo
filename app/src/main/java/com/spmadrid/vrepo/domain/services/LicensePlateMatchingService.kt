@@ -10,4 +10,5 @@ class LicensePlateMatchingService @Inject constructor(
 ){
     suspend fun getStatus(plateDetails: PlateCheckInput) = licensePlateRepository.getStatus(plateDetails)
     suspend fun sendAlertToGroupChat(notifyGroupChatRequest: NotifyGroupChatRequest) = licensePlateRepository.sendAlertToGroupChat(notifyGroupChatRequest)
+    suspend fun getClientDetails(plateDetails: PlateCheckInput) = licensePlateRepository.getClientDetails(plateDetails)
 }

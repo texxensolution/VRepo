@@ -119,9 +119,9 @@ private fun CameraDetectionContent(
     ) {
         Box(
             modifier = Modifier
-                .then(if (isFullscreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth(0.4f).fillMaxHeight(0.3f) )
-                .padding(horizontal = 10.dp)
-                .padding(bottom = 15.dp)
+                .then(if (isFullscreen) Modifier.fillMaxWidth().fillMaxHeight(0.9f) else Modifier.fillMaxWidth(0.4f).fillMaxHeight(0.3f) )
+                .padding(10.dp)
+//                .padding(bottom = 15.dp)
                 .statusBarsPadding()
                 .clip(RoundedCornerShape(16.dp)) // Rounded corners
                 .border(2.dp, Color.White, RoundedCornerShape(16.dp)) // Border with rounded cornersr
@@ -200,9 +200,12 @@ private fun CameraDetectionContent(
             )
         }
 
-
         if (!isFullscreen) {
-            Column(modifier = Modifier.align(Alignment.TopEnd).zIndex(15f)) {
+            Column(modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(vertical = 10.dp)
+                .zIndex(15f)
+            ) {
                 ServerStatusIndicator(
                     isFullscreen = isFullscreen,
                     modifier = Modifier
