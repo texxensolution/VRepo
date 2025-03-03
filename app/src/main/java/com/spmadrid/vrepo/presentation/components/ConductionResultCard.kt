@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.spmadrid.vrepo.presentation.ui.theme.Gray100
 import com.spmadrid.vrepo.presentation.ui.theme.Gray900
 
+
 @Composable
 fun ConductionResultCard(
     plateNumber: String,
@@ -56,21 +57,25 @@ fun ConductionResultCard(
                     color = if (status == "POSITIVE") Color.Red else Color.Yellow
                 )
             }
+
             Text(
                 text = "Plate Number: $plateNumber",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
+
             Text(
                 text = "Vehicle Model: $vehicleModel",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
+
             Text(
                 text = "CH Code: $chCode",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
+
             Text(
                 text = "Endo Date: $endoDate",
                 fontWeight = FontWeight.Bold,

@@ -40,6 +40,7 @@ import com.spmadrid.vrepo.presentation.screens.PermissionScreen
 import com.spmadrid.vrepo.presentation.ui.theme.VRepoTheme
 import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
+import com.spmadrid.vrepo.presentation.viewmodel.ManualSearchViewModel
 import com.ss.android.larksso.LarkSSO
 import dagger.hilt.android.AndroidEntryPoint
 import io.ktor.client.HttpClient
@@ -68,6 +69,7 @@ class MainActivity : ComponentActivity() {
 
     val cameraViewModel: CameraViewModel by viewModels()
     val authViewModel: AuthenticateViewModel by viewModels()
+    val manualSearchViewModel: ManualSearchViewModel by viewModels()
 
     override fun onResume() {
         super.onResume()
@@ -111,19 +113,28 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     bottomBar = {
-                        if (currentRoute != "permission") {
+                        if (currentRoute  !in listOf("permission", "login")) {
                             BottomNavigationBar(navController)
                         }
                     }
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = if(isPermissionDenied(cameraPermissionState, locationPermissionState)) "permission" else BottomNavItem.Home.route,
+                        startDestination = if(isPermissionDenied(cameraPermissionState, locationPermissionState)) "permission"
+                        else if (tokenState.value == null) "login"
+                        else BottomNavItem.Home.route,
                     ) {
                         composable("permission") {
                             PermissionScreen(
                                 cameraPermissionState,
                                 locationPermissionState
+                            )
+                        }
+                        composable("login") {
+                            LoginScreen(
+                                this@MainActivity,
+                                cameraViewModel,
+                                authViewModel
                             )
                         }
                         composable(BottomNavItem.Home.route) {
@@ -136,32 +147,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(BottomNavItem.Conduction.route) {
-                            ConductionStickerScreen(plateMatchingService = licensePlateMatchingService, locationManagerService = locationManagerService)
+                            ConductionStickerScreen(
+                                manualSearchViewModel = manualSearchViewModel
+                            )
                         }
                     }
-
-//                    if (!cameraPermissionState.status.isGranted || !locationPermissionState.allPermissionsGranted) {
-//                        PermissionScreen(
-//                            cameraPermissionState,
-//                            locationPermissionState
-//                        )
-//                    } else {
-//                        if (tokenState.value == null) {
-//                            LoginScreen(
-//                                context = this,
-//                                cameraViewModel = cameraViewModel,
-//                                authViewModel = authViewModel
-//                            )
-//                        } else {
-//                            CameraDetectionScreen(
-//                                objectDetector = objectDetector,
-//                                cameraViewModel = cameraViewModel,
-//                                authViewModel = authViewModel,
-//                                serverInfoService = serverInfoService,
-//                                locationManagerService = locationManagerService
-//                            )
-//                        }
-//                    }
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.spmadrid.vrepo.data.repositories
 
 import android.util.Log
 import com.spmadrid.vrepo.domain.dtos.ClientDetailsResponse
+import com.spmadrid.vrepo.domain.dtos.ManualNotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatResponse
 import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
@@ -66,6 +67,27 @@ class LicensePlateRepositoryImpl @Inject constructor(
         Log.d(TAG, "isPositive: $body")
 
         return body
+    }
+
+    override suspend fun sendManualAlertToGroupChat(manualNotifyGroupChatRequest: ManualNotifyGroupChatRequest): NotifyGroupChatResponse? {
+        try {
+            println("Manual alert to group chat: $manualNotifyGroupChatRequest")
+            val response = client.post {
+                url {
+                    appendPathSegments("api", "v4", "notify", "group-chat", "manual")
+                }
+                contentType(ContentType.Application.Json)
+                setBody(manualNotifyGroupChatRequest)
+            }
+
+            if (response.status == HttpStatusCode.OK && response.status.isSuccess()) {
+                val body = response.body<NotifyGroupChatResponse>()
+                return body
+            }
+        } catch (err: Exception) {
+            Log.e(TAG, "Error: $err")
+        }
+        return null
     }
 
     @OptIn(InternalAPI::class)

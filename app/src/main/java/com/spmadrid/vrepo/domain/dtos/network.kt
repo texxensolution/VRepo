@@ -52,6 +52,14 @@ data class NotifyGroupChatRequest(
     val longitude: Double
 )
 
+
+@Serializable
+data class ManualNotifyGroupChatRequest(
+    val plate: String,
+    val detected_type: String,
+    val location: List<Double>
+)
+
 @Serializable
 data class NotifyGroupChatResponse(
     val message: String,

@@ -1,11 +1,9 @@
 package com.spmadrid.vrepo.presentation.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +20,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,58 +31,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spmadrid.vrepo.domain.dtos.ClientDetailsResponse
-import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
-import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
-import com.spmadrid.vrepo.domain.services.LocationManagerService
 import com.spmadrid.vrepo.presentation.components.ConductionResultCard
 import com.spmadrid.vrepo.presentation.ui.theme.Gray100
 import com.spmadrid.vrepo.presentation.ui.theme.Gray300
 import com.spmadrid.vrepo.presentation.ui.theme.Gray600
 import com.spmadrid.vrepo.presentation.ui.theme.Gray900
 import com.spmadrid.vrepo.presentation.ui.theme.GrayBG
+import com.spmadrid.vrepo.presentation.viewmodel.ManualSearchViewModel
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun ConductionStickerScreen(
-    plateMatchingService: LicensePlateMatchingService,
-    locationManagerService: LocationManagerService
+    manualSearchViewModel: ManualSearchViewModel
 ) {
     var conductionTextFieldState by remember { mutableStateOf("") }
-    var searchResult by remember { mutableStateOf<ClientDetailsResponse?>(null) }
-    var searching by remember { mutableStateOf(false) }
-
+    val searchResult = manualSearchViewModel.searchResult.collectAsState()
+    val loading = manualSearchViewModel.loading.collectAsState()
     val scope = rememberCoroutineScope()
 
-    suspend fun onSearchHandler() {
-        if (conductionTextFieldState.isBlank()) {
-            return
-        }
-
-        searching = true
-
-        val location = locationManagerService.getCurrentLocation()
-
-        if (location != null) {
-            try {
-                val details = PlateCheckInput(
-                    plate = conductionTextFieldState,
-                    detected_type = "sticker",
-                    location = listOf(
-                        location.latitude,
-                        location.longitude
-                    )
-                )
-                val clientDetails = plateMatchingService.getClientDetails(details)
-
-                searchResult = clientDetails
-            } catch (err: Exception) {
-                Log.e("ConductionStickerScreen", "Error: ${err.message}")
-            } finally {
-                searching = false
-            }
-        }
-    }
 
     Box(modifier = Modifier
         .padding()
@@ -123,7 +89,10 @@ fun ConductionStickerScreen(
                 Button(
                     onClick = {
                         scope.launch {
-                            onSearchHandler()
+                            manualSearchViewModel.search(
+                                conductionTextFieldState,
+                                "sticker"
+                            )
                         }
                     },
                     modifier = Modifier.widthIn(120.dp),
@@ -133,7 +102,7 @@ fun ConductionStickerScreen(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    if (searching) {
+                    if (loading.value) {
                         CircularProgressIndicator(
                             color = GrayBG,
                             modifier = Modifier.size(24.dp)
@@ -143,6 +112,7 @@ fun ConductionStickerScreen(
                     }
                 }
             }
+
             Spacer(modifier = Modifier.padding(vertical = 8.dp))
             if (searchResult != null) {
                 Column(modifier = Modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -150,7 +120,7 @@ fun ConductionStickerScreen(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        searchResult?.let {
+                        searchResult.value?.let {
                             items(it.accounts) { result ->
                                 ConductionResultCard(
                                     plateNumber = result.plate_no,

@@ -1,5 +1,6 @@
 package com.spmadrid.vrepo.domain.services
 
+import com.spmadrid.vrepo.domain.dtos.ManualNotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
 import com.spmadrid.vrepo.domain.repositories.LicensePlateRepository
@@ -11,4 +12,5 @@ class LicensePlateMatchingService @Inject constructor(
     suspend fun getStatus(plateDetails: PlateCheckInput) = licensePlateRepository.getStatus(plateDetails)
     suspend fun sendAlertToGroupChat(notifyGroupChatRequest: NotifyGroupChatRequest) = licensePlateRepository.sendAlertToGroupChat(notifyGroupChatRequest)
     suspend fun getClientDetails(plateDetails: PlateCheckInput) = licensePlateRepository.getClientDetails(plateDetails)
+    suspend fun sendManualAlertToGroupChat(manualNotifyGroupChatRequest: ManualNotifyGroupChatRequest) = licensePlateRepository.sendManualAlertToGroupChat(manualNotifyGroupChatRequest)
 }
