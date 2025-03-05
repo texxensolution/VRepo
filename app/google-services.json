@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "241977971672",
+    "project_id": "vrepo-c0abd",
+    "storage_bucket": "vrepo-c0abd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:241977971672:android:0a1b48da039a0b59c198ad",
+        "android_client_info": {
+          "package_name": "com.spmadrid.vrepo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeQejSskZ5qxFrcwW1QufwyqCFXvrm_hY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

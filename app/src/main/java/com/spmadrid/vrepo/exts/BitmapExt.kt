@@ -10,7 +10,7 @@ import java.io.IOException
 import java.util.UUID
 
 val TAG = "Bitmap"
-
+const val PADDING = 10
 fun Bitmap.crop(boundingBox: BoundingBox): Bitmap {
     // Get the cropping coordinates from the scaleBoundingBox function
     Log.d(TAG, "Cropped using provided bounding box!")
@@ -20,7 +20,13 @@ fun Bitmap.crop(boundingBox: BoundingBox): Bitmap {
     val right = bottomRight.first
     val bottom = bottomRight.second
     // Crop the bitmap using the calculated coordinates
-    return Bitmap.createBitmap(this, left, top, right - left, bottom - top)
+    return Bitmap.createBitmap(
+        this,
+        left,
+        top,
+        right - left,
+        bottom - top
+    )
 }
 
 fun Bitmap.scaleBoundingBox(
@@ -36,13 +42,21 @@ fun Bitmap.scaleBoundingBox(
 fun Bitmap.saveToStorage(fileName: String = UUID.randomUUID().toString()): Boolean {
     return try {
         // Get the directory to save the image (e.g., Pictures folder)
-        val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyApp")
+        val directory = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+            "MyApp"
+        )
+
         // Make sure the directory exists, if not, create it
         if (!directory.exists()) {
             directory.mkdirs()
         }
         // Create a file inside that directory with the provided file name
-        val file = File(directory, "$fileName.jpg")
+        val file = File(
+            directory,
+            "$fileName.jpg"
+        )
+
         // Open a FileOutputStream to write the bitmap to the file
         FileOutputStream(file).use { fos ->
             // Compress the bitmap into a JPG format and write it to the FileOutputStream
@@ -54,4 +68,10 @@ fun Bitmap.saveToStorage(fileName: String = UUID.randomUUID().toString()): Boole
         Log.e(TAG, "Error saving bitmap", e)
         false // Failed to save
     }
+}
+
+fun Bitmap.toByteArray(): ByteArray {
+    val outputStream = java.io.ByteArrayOutputStream()
+    this.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+    return outputStream.toByteArray()
 }

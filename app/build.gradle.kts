@@ -5,6 +5,10 @@ plugins {
     id("dagger.hilt.android.plugin")
     id("kotlin-kapt")
     id("com.google.devtools.ksp")
+    alias(libs.plugins.kotlinx.serialization)
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+
 }
 
 android {
@@ -16,7 +20,7 @@ android {
         minSdk = 29
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "3.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,10 +44,15 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        jniLibs {
+            excludes += listOf("lib/x86/**", "lib/x86_64/**", "lib/armeabi-v7a/**")
+        }
+        resources.excludes.add("META-INF/DEPENDENCIES")
+    }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -52,6 +61,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.security.crypto.ktx)
 //    implementation(libs.litert.support.api)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -84,4 +94,38 @@ dependencies {
     // hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
+
+    implementation(libs.fastjson)
+    implementation(libs.androidx.appcompat)
+
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.auth)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.content.negotiation)
+
+    // GMS - Google Mobile Services
+    implementation(libs.play.services.location)
+
+    // Permissions
+    implementation(libs.accompanist.permissions)
+
+    // Import the Firebase BoM
+    implementation(platform(libs.firebase.bom))
+
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+
+    implementation(libs.androidx.security.crypto)
+
+    implementation(libs.font.awesome)
+
+    implementation(libs.osmdroid.android)
+
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.material3)
 }

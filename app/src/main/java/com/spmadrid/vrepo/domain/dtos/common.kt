@@ -13,3 +13,20 @@ data class BoundingBox(
     val cls: Int,
     val clsName: String
 )
+
+data class DetectedTextResult(
+    val text: String,
+    val detectedType: String,
+    val frame: ByteArray
+)
+
+data class Coordinate(
+    val latitude: Double,
+    val longitude: Double
+)
+
+enum class PlateStatus {
+    POSITIVE,
+    FOR_CONFIRMATION,
+    NEGATIVE
+}
