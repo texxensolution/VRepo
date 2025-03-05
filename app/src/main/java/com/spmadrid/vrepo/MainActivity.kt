@@ -102,6 +102,8 @@ class MainActivity : ComponentActivity() {
 
                 val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
+                val microphonePermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+
                 val locationPermissionState = rememberMultiplePermissionsState(
                     permissions = listOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -120,13 +122,14 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavHost(
                         navController = navController,
-                        startDestination = if(isPermissionDenied(cameraPermissionState, locationPermissionState)) "permission"
+                        startDestination = if(isPermissionDenied(cameraPermissionState, microphonePermissionState, locationPermissionState)) "permission"
                         else if (tokenState.value == null) "login"
                         else BottomNavItem.Home.route,
                     ) {
                         composable("permission") {
                             PermissionScreen(
                                 cameraPermissionState,
+                                microphonePermissionState,
                                 locationPermissionState
                             )
                         }
@@ -161,7 +164,8 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalPermissionsApi::class)
 fun isPermissionDenied(
     cameraPermissionState: PermissionState,
+    microphonePermissionState: PermissionState,
     locationPermissionState: MultiplePermissionsState
 ): Boolean {
-    return !cameraPermissionState.status.isGranted || !locationPermissionState.allPermissionsGranted
+    return !cameraPermissionState.status.isGranted || !locationPermissionState.allPermissionsGranted || !microphonePermissionState.status.isGranted
 }

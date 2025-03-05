@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.provider.Settings
 import android.util.Log
+import com.spmadrid.vrepo.R
 import com.spmadrid.vrepo.domain.repositories.AuthenticationRepository
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.ss.android.larksso.CallBackData
@@ -35,7 +36,7 @@ class AuthenticationServiceImpl @Inject constructor(
         )
 
         builder = LarkSSO.Builder()
-            .setAppId("cli_a639a4faacf8900a")
+            .setAppId(context.getString(R.string.lark_app_id))
             .setServer("Lark")
             .setScopeList(ArrayList(scopeList))
             .setDeviceId(_deviceId)
@@ -63,8 +64,17 @@ class AuthenticationServiceImpl @Inject constructor(
                     Log.d(TAG, exc.toString())
                     continuation.resume(null)
                 }
-
             })
         }
+    }
+
+    override suspend fun signInWithUserAndPassword(username: String, password: String): String? {
+        val response = authenticationRepository.signInWithUserAndPassword(username, password)
+
+        if (response?.status == "error") {
+            throw Exception(response?.msg)
+        }
+
+        return response?.data?.access_token
     }
 }

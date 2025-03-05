@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">VRepo</string>
+    <string name="app_name">Repo.AI</string>
+    <string name="lark_app_id">cli_a6889e23ee38500a</string>
 </resources>

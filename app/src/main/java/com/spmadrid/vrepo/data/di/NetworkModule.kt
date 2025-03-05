@@ -3,6 +3,7 @@ package com.spmadrid.vrepo.data.di
 import android.content.Context
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.spmadrid.vrepo.data.providers.KtorClientProvider
 import com.spmadrid.vrepo.data.repositories.LicensePlateRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.LocationRepositoryImpl
 import com.spmadrid.vrepo.domain.repositories.LicensePlateRepository
@@ -47,11 +48,10 @@ object NetworkModule {
             install(Auth) {
                 bearer {
                     loadTokens {
-                        val token = runBlocking {
-                            tokenManagerService.tokenFlow.firstOrNull()
-                        }
-                        token?.let {
-                            BearerTokens(it, "")
+                        runBlocking {
+                            tokenManagerService.tokenFlow.firstOrNull()?.let {
+                                BearerTokens(it, "")
+                            }
                         }
                     }
                 }
@@ -72,5 +72,11 @@ object NetworkModule {
     @Singleton
     fun provideFusedLocationProviderClient(@ApplicationContext context: Context): FusedLocationProviderClient {
         return LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideKtorProviderClient(tokenManagerService: TokenManagerService): KtorClientProvider {
+        return KtorClientProvider(tokenManagerService)
     }
 }

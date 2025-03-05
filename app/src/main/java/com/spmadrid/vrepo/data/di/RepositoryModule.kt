@@ -2,6 +2,7 @@ package com.spmadrid.vrepo.data.di
 
 import android.content.Context
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.spmadrid.vrepo.data.providers.KtorClientProvider
 import com.spmadrid.vrepo.data.repositories.AuthenticationRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.LicensePlateRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.LocationRepositoryImpl
@@ -23,17 +24,17 @@ import javax.inject.Singleton
 object RepositoryModule {
     @Provides
     @Singleton
-    fun provideLicensePlateRepository(client: HttpClient): LicensePlateRepository {
-        return LicensePlateRepositoryImpl(client)
+    fun provideLicensePlateRepository(ktorClientProvider: KtorClientProvider): LicensePlateRepository {
+        return LicensePlateRepositoryImpl(ktorClientProvider)
     }
 
     @Provides
     @Singleton
     fun provideAuthenticationRepository(
-        client: HttpClient
+        ktorClientProvider: KtorClientProvider
     ): AuthenticationRepository {
         return AuthenticationRepositoryImpl(
-            client
+            ktorClientProvider
         )
     }
 
@@ -51,7 +52,9 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideServerInfoRepository(client: HttpClient): ServerInfoRepository {
-        return ServerInfoRepositoryImpl(client)
+    fun provideServerInfoRepository(
+        ktorClientProvider: KtorClientProvider
+    ): ServerInfoRepository {
+        return ServerInfoRepositoryImpl(ktorClientProvider)
     }
 }

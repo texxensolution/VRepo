@@ -1,6 +1,7 @@
 package com.spmadrid.vrepo.data.repositories
 
 import android.util.Log
+import com.spmadrid.vrepo.data.providers.KtorClientProvider
 import com.spmadrid.vrepo.domain.dtos.ClientDetailsResponse
 import com.spmadrid.vrepo.domain.dtos.ManualNotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
@@ -27,10 +28,10 @@ import javax.inject.Inject
 
 
 class LicensePlateRepositoryImpl @Inject constructor(
-    private val client: HttpClient
+    private val ktorClientProvider: KtorClientProvider
 ) : LicensePlateRepository {
     override suspend fun getStatus(plateDetails: PlateCheckInput): PlateStatus {
-        val response = client.post {
+        val response = ktorClientProvider.client.value.post {
             url {
                 appendPathSegments("api", "v4", "plate", "check")
             }
@@ -52,7 +53,7 @@ class LicensePlateRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getClientDetails(plateDetails: PlateCheckInput): ClientDetailsResponse? {
-        val response = client.post {
+        val response = ktorClientProvider.client.value.post {
             url {
                 appendPathSegments("api", "v4", "plate", "check")
             }
@@ -72,7 +73,7 @@ class LicensePlateRepositoryImpl @Inject constructor(
     override suspend fun sendManualAlertToGroupChat(manualNotifyGroupChatRequest: ManualNotifyGroupChatRequest): NotifyGroupChatResponse? {
         try {
             println("Manual alert to group chat: $manualNotifyGroupChatRequest")
-            val response = client.post {
+            val response = ktorClientProvider.client.value.post {
                 url {
                     appendPathSegments("api", "v4", "notify", "group-chat", "manual")
                 }
@@ -93,7 +94,7 @@ class LicensePlateRepositoryImpl @Inject constructor(
     @OptIn(InternalAPI::class)
     override suspend fun sendAlertToGroupChat(notifyGroupChatRequest: NotifyGroupChatRequest): NotifyGroupChatResponse? {
         val uuid = UUID.randomUUID().toString()
-        val response = client.post {
+        val response = ktorClientProvider.client.value.post {
             url {
                 appendPathSegments("api", "v4", "notify", "group-chat")
             }

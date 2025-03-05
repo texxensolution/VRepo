@@ -8,7 +8,10 @@ class AuthenticationRepositoryImpl : AuthenticationRepository  {
         TODO("Not yet implemented")
     }
 
-    override suspend fun signIn(username: String, password: String): AuthenticateResponse {
+    override suspend fun signInWithUserAndPassword(
+        username: String,
+        password: String
+    ): AuthenticateResponse? {
         TODO("Not yet implemented")
     }
 }

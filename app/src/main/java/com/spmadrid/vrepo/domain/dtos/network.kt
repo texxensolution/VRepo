@@ -15,7 +15,7 @@ data class AuthenticateDataField(
 data class AuthenticateResponse(
     val status: String,
     val msg: String,
-    val data: AuthenticateDataField
+    val data: AuthenticateDataField?
 )
 
 @Serializable

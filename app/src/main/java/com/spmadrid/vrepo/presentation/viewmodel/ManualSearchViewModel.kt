@@ -36,15 +36,16 @@ class ManualSearchViewModel @Inject constructor(
     }
 
     suspend fun search(targetText: String, detectedType: String): Unit {
-        setIsLoading()
 
         if (targetText.isBlank()) {
             return
         }
         viewModelScope.launch {
-            val location = locationManagerService.getCurrentLocation()
-            location?.let {
-                try {
+            try {
+                setIsLoading()
+                val location = locationManagerService.getCurrentLocation()
+
+                location?.let {
                     val currentLocation = listOf(
                         location.latitude,
                         location.longitude
@@ -71,14 +72,13 @@ class ManualSearchViewModel @Inject constructor(
                         }
                         else -> {}
                     }
-
-                } catch (err: Exception) {
-                    Log.e("ManualSearchViewModel", "Error: $err")
-                    doneLoading()
-                } finally {
-                    doneLoading()
                 }
+            } catch (err: Exception) {
+                Log.e("ManualSearchViewModel", "Error: $err")
+                doneLoading()
+            } finally {
+                doneLoading()
             }
         }
-    }
+        }
 }

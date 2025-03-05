@@ -63,6 +63,7 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Compress
 import compose.icons.fontawesomeicons.solid.DoorOpen
 import compose.icons.fontawesomeicons.solid.Expand
+import compose.icons.fontawesomeicons.solid.PowerOff
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -237,7 +238,7 @@ private fun CameraDetectionContent(
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Image(
-                        imageVector = FontAwesomeIcons.Solid.DoorOpen,
+                        imageVector = FontAwesomeIcons.Solid.PowerOff,
                         contentDescription = "logout button",
                         modifier = Modifier.size(18.dp).padding(0.dp),
                         colorFilter = ColorFilter.tint(Color.White)

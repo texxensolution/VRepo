@@ -26,6 +26,7 @@ import com.google.accompanist.permissions.isGranted
 @Composable
 fun PermissionScreen(
     cameraPermissionState: PermissionState,
+    microphonePermissionState: PermissionState,
     locationPermissionState: MultiplePermissionsState
 ) {
     Column(
@@ -38,6 +39,24 @@ fun PermissionScreen(
                 fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
+
+        Spacer(modifier = Modifier.padding(bottom = 22.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 52.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            Text("Microphone Permission Granted: ")
+            Text(if (microphonePermissionState.status.isGranted) "✅" else "❌")
+        }
+
+        Spacer(modifier = Modifier.padding(top = 8.0.dp))
+
+        if (!microphonePermissionState.status.isGranted) {
+            Button(onClick = { microphonePermissionState.launchPermissionRequest() }) {
+                Text("Request Microphone Permission")
+            }
+        }
 
         Spacer(modifier = Modifier.padding(bottom = 22.dp))
 
