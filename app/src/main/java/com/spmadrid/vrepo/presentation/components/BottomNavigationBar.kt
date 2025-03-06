@@ -13,9 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.spmadrid.vrepo.domain.dtos.BottomNavItem
-import com.spmadrid.vrepo.presentation.ui.theme.Gray100
-import com.spmadrid.vrepo.presentation.ui.theme.Gray600
-import com.spmadrid.vrepo.presentation.ui.theme.Gray900
 import com.spmadrid.vrepo.presentation.ui.theme.Neutral800
 
 @Composable

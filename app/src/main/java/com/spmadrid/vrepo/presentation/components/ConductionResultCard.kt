@@ -15,8 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spmadrid.vrepo.presentation.ui.theme.Gray100
-import com.spmadrid.vrepo.presentation.ui.theme.Gray900
+import com.spmadrid.vrepo.presentation.ui.theme.Gray800
 
 
 @Composable
@@ -31,8 +30,8 @@ fun ConductionResultCard(
         modifier = Modifier
             .fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Gray900,
-            contentColor = Gray100
+            containerColor = Color.White,
+            contentColor = Gray800
         ),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)

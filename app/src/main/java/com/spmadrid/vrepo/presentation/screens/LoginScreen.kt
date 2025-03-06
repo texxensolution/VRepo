@@ -58,13 +58,8 @@ import com.spmadrid.vrepo.presentation.components.ShiningFloatingNotification
 import com.spmadrid.vrepo.presentation.ui.theme.Blue100
 import com.spmadrid.vrepo.presentation.ui.theme.Blue400
 import com.spmadrid.vrepo.presentation.ui.theme.Blue50
-import com.spmadrid.vrepo.presentation.ui.theme.Blue500
 import com.spmadrid.vrepo.presentation.ui.theme.Blue600
-import com.spmadrid.vrepo.presentation.ui.theme.Gray100
-import com.spmadrid.vrepo.presentation.ui.theme.Gray200
-import com.spmadrid.vrepo.presentation.ui.theme.Gray300
 import com.spmadrid.vrepo.presentation.ui.theme.Gray400
-import com.spmadrid.vrepo.presentation.ui.theme.Gray800
 import com.spmadrid.vrepo.presentation.ui.theme.Roboto
 import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel

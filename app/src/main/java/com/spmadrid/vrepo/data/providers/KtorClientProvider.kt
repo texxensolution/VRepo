@@ -9,6 +9,7 @@ import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +48,9 @@ class KtorClientProvider @Inject constructor(
                     protocol = URLProtocol.HTTP
                 }
             }
+            install(WebSockets) {
+                pingIntervalMillis = PING_WEBSOCKET_INTERVAL
+            }
             install(Auth) {
                 bearer {
                     loadTokens {
@@ -68,5 +72,6 @@ class KtorClientProvider @Inject constructor(
 
     companion object {
         const val TAG = "KtorClientProvider"
+        const val PING_WEBSOCKET_INTERVAL = 80L
     }
 }

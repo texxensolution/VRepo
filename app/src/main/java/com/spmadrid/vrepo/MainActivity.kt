@@ -8,14 +8,11 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -33,6 +30,7 @@ import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
 import com.spmadrid.vrepo.domain.services.LocationManagerService
 import com.spmadrid.vrepo.domain.services.ServerInfoService
 import com.spmadrid.vrepo.presentation.components.BottomNavigationBar
+import com.spmadrid.vrepo.presentation.components.SpeechToTextFloatingButton
 import com.spmadrid.vrepo.presentation.screens.CameraDetectionScreen
 import com.spmadrid.vrepo.presentation.screens.ConductionStickerScreen
 import com.spmadrid.vrepo.presentation.screens.LoginScreen
@@ -44,8 +42,8 @@ import com.spmadrid.vrepo.presentation.viewmodel.ManualSearchViewModel
 import com.ss.android.larksso.LarkSSO
 import dagger.hilt.android.AndroidEntryPoint
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
+
 
 @AndroidEntryPoint()
 class MainActivity : ComponentActivity() {
@@ -118,7 +116,13 @@ class MainActivity : ComponentActivity() {
                         if (currentRoute  !in listOf("permission", "login")) {
                             BottomNavigationBar(navController)
                         }
-                    }
+                    },
+                    floatingActionButton = {
+                        if (currentRoute == BottomNavItem.Conduction.route) { // Show only on second screen
+                            SpeechToTextFloatingButton(manualSearchViewModel)
+                        }
+                    },
+                    floatingActionButtonPosition = FabPosition.Center
                 ) {
                     NavHost(
                         navController = navController,

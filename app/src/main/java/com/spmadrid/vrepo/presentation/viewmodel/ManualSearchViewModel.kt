@@ -1,8 +1,6 @@
 package com.spmadrid.vrepo.presentation.viewmodel
 
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spmadrid.vrepo.domain.dtos.ClientDetailsResponse
@@ -26,6 +24,13 @@ class ManualSearchViewModel @Inject constructor(
 
     private val _searchResult: MutableStateFlow<ClientDetailsResponse?> = MutableStateFlow(null)
     val searchResult: StateFlow<ClientDetailsResponse?> = _searchResult
+
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText
+
+    fun setSearchText(text: String) {
+        _searchText.value = text
+    }
 
     fun setIsLoading() {
         _loading.value = true
