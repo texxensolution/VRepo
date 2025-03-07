@@ -1,6 +1,7 @@
 package com.spmadrid.vrepo.data.di
 
 import android.content.Context
+import com.spmadrid.vrepo.data.providers.KtorClientProvider
 import com.spmadrid.vrepo.data.services.AuthenticationServiceImpl
 import com.spmadrid.vrepo.data.services.ServerInfoServiceImpl
 import com.spmadrid.vrepo.domain.repositories.AuthenticationRepository
@@ -64,4 +65,5 @@ object ServiceModule {
     ): ServerInfoService {
         return ServerInfoServiceImpl(serverInfoRepository)
     }
+
 }

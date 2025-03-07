@@ -36,8 +36,13 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
+import com.spmadrid.vrepo.domain.dtos.BottomNavItem
 import com.spmadrid.vrepo.exts.removeDiacritics
 import com.spmadrid.vrepo.exts.removeSpecialCharacters
+import com.spmadrid.vrepo.presentation.hooks.rememberVibrator
 import com.spmadrid.vrepo.presentation.ui.theme.Blue500
 import com.spmadrid.vrepo.presentation.ui.theme.Blue800
 import com.spmadrid.vrepo.presentation.viewmodel.ManualSearchViewModel
@@ -50,7 +55,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SpeechToTextFloatingButton(
-    manualSearchViewModel: ManualSearchViewModel
+    currentRoute: String?,
+    manualSearchViewModel: ManualSearchViewModel,
+    navController: NavHostController
 ) {
     val context = LocalContext.current
     val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
@@ -61,20 +68,13 @@ fun SpeechToTextFloatingButton(
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US") // Change for different languages
         }
     }
-    val vibrator = remember { context.getSystemService(VibratorManager::class.java)?.defaultVibrator }
+    val vibrator = rememberVibrator(LocalContext.current)
 
     val scope = rememberCoroutineScope()
 
     var spokenText by remember { mutableStateOf("Press and Hold to Speak") }
     var isListening by remember { mutableStateOf(false) }
     var isPressed by remember { mutableStateOf(false) }
-
-    val restartRecognition = {
-        if (isListening) {
-            speechRecognizer.cancel()  // Cancel the previous session before restarting
-            speechRecognizer.startListening(recognitionIntent)
-        }
-    }
 
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 1.1f else 1f, // Scale down when pressed
@@ -89,9 +89,19 @@ fun SpeechToTextFloatingButton(
 
                 if (spokenText.isNotBlank()) {
                     scope.launch {
-                        val text = spokenText.removeDiacritics().removeSpecialCharacters().uppercase()
+                        val text = spokenText
+                            .removeDiacritics()
+                            .removeSpecialCharacters()
+                            .uppercase()
                         manualSearchViewModel.setSearchText(text)
-                        manualSearchViewModel.search(text, "sticker")
+                        val queryHaveResult = manualSearchViewModel.search(text, "sticker")
+                        if (queryHaveResult && currentRoute != BottomNavItem.Conduction.route) {
+                            navController.navigate(BottomNavItem.Conduction.route) {
+                                launchSingleTop = true
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }  // Ensures back stack is preserved
+                                restoreState = true  // Keeps UI state intact
+                            }
+                        }
                     }
                 }
                 Log.d("SpeechRecognition", "SpokenText: $spokenText")
@@ -157,7 +167,6 @@ fun SpeechToTextFloatingButton(
                         MotionEvent.ACTION_CANCEL -> {
                             isListening = false
                             isPressed = false
-
                         }
                     }
                     true

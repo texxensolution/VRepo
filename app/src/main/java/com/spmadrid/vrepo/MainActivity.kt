@@ -4,13 +4,17 @@ import android.Manifest
 import org.osmdroid.config.Configuration
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
@@ -24,6 +28,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.spmadrid.vrepo.domain.dtos.BottomNavItem
+import com.spmadrid.vrepo.domain.dtos.CurrentDeviceInfo
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
@@ -38,10 +43,12 @@ import com.spmadrid.vrepo.presentation.screens.PermissionScreen
 import com.spmadrid.vrepo.presentation.ui.theme.VRepoTheme
 import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
+import com.spmadrid.vrepo.presentation.viewmodel.DeviceTrackingViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.ManualSearchViewModel
 import com.ss.android.larksso.LarkSSO
 import dagger.hilt.android.AndroidEntryPoint
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 
@@ -68,6 +75,7 @@ class MainActivity : ComponentActivity() {
     val cameraViewModel: CameraViewModel by viewModels()
     val authViewModel: AuthenticateViewModel by viewModels()
     val manualSearchViewModel: ManualSearchViewModel by viewModels()
+    val deviceTrackingViewModel: DeviceTrackingViewModel by viewModels()
 
     override fun onResume() {
         super.onResume()
@@ -84,6 +92,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     @OptIn(ExperimentalPermissionsApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(
@@ -91,25 +100,39 @@ class MainActivity : ComponentActivity() {
     ) {
         super.onCreate(savedInstanceState)
         Configuration.getInstance().userAgentValue = "VRepo"
-//        enableEdgeToEdge()
         setContent {
             VRepoTheme {
                 val navController = rememberNavController()
                 val currentBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = currentBackStackEntry?.destination?.route
-
                 val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-
                 val microphonePermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
-
                 val locationPermissionState = rememberMultiplePermissionsState(
                     permissions = listOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     )
                 )
-
                 val tokenState = authViewModel.tokenState.collectAsState()
+
+                window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+
+//                LaunchedEffect(tokenState.value) {
+//                    if (!tokenState.value.isNullOrBlank()) {
+//                        deviceTrackingViewModel.initWebSocket()
+//                    }
+//                    while (true) {
+//                        val location = locationManagerService.getCurrentLocation()
+//                        val deviceInfo = CurrentDeviceInfo(
+//                            location = listOf(
+//                                location?.latitude,
+//                                location?.longitude
+//                            )
+//                        )
+//                        deviceTrackingViewModel.sendCurrentDeviceInfo(deviceInfo)
+//                        delay(1000L)
+//                    }
+//                }
 
                 Scaffold(
                     bottomBar = {
@@ -118,8 +141,15 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     floatingActionButton = {
-                        if (currentRoute == BottomNavItem.Conduction.route) { // Show only on second screen
-                            SpeechToTextFloatingButton(manualSearchViewModel)
+                        if (currentRoute in listOf(
+                                BottomNavItem.Home.route,
+                                BottomNavItem.Conduction.route
+                        )) { // Show only on second screen
+                            SpeechToTextFloatingButton(
+                                currentRoute,
+                                manualSearchViewModel,
+                                navController
+                            )
                         }
                     },
                     floatingActionButtonPosition = FabPosition.Center
@@ -149,8 +179,9 @@ class MainActivity : ComponentActivity() {
                                 objectDetector = objectDetector,
                                 cameraViewModel = cameraViewModel,
                                 authViewModel = authViewModel,
+                                deviceTrackingViewModel = deviceTrackingViewModel,
                                 serverInfoService = serverInfoService,
-                                locationManagerService = locationManagerService
+                                locationManagerService = locationManagerService,
                             )
                         }
                         composable(BottomNavItem.Conduction.route) {

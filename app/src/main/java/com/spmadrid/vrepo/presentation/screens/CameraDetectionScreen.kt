@@ -58,13 +58,18 @@ import com.spmadrid.vrepo.presentation.components.ServerStatusIndicator
 import com.spmadrid.vrepo.presentation.components.ShiningFloatingNotification
 import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
+import com.spmadrid.vrepo.presentation.viewmodel.DeviceTrackingViewModel
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Compress
 import compose.icons.fontawesomeicons.solid.DoorOpen
 import compose.icons.fontawesomeicons.solid.Expand
 import compose.icons.fontawesomeicons.solid.PowerOff
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -74,13 +79,15 @@ fun CameraDetectionScreen(
     objectDetector: IObjectDetector,
     cameraViewModel: CameraViewModel,
     authViewModel: AuthenticateViewModel,
+    deviceTrackingViewModel: DeviceTrackingViewModel,
     serverInfoService: ServerInfoService,
-    locationManagerService: LocationManagerService
+    locationManagerService: LocationManagerService,
 ) {
         CameraDetectionContent(
             objectDetector,
             cameraViewModel = cameraViewModel,
             authViewModel = authViewModel,
+            deviceTrackingViewModel = deviceTrackingViewModel,
             serverInfoService = serverInfoService,
             locationManagerService = locationManagerService
         )
@@ -93,6 +100,7 @@ private fun CameraDetectionContent(
     objectDetector: IObjectDetector,
     cameraViewModel: CameraViewModel,
     authViewModel: AuthenticateViewModel,
+    deviceTrackingViewModel: DeviceTrackingViewModel,
     serverInfoService: ServerInfoService,
     locationManagerService: LocationManagerService
 ) {
@@ -114,6 +122,7 @@ private fun CameraDetectionContent(
         window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -122,7 +131,6 @@ private fun CameraDetectionContent(
             modifier = Modifier
                 .then(if (isFullscreen) Modifier.fillMaxWidth().fillMaxHeight(0.9f) else Modifier.fillMaxWidth(0.4f).fillMaxHeight(0.3f) )
                 .padding(10.dp)
-//                .padding(bottom = 15.dp)
                 .statusBarsPadding()
                 .clip(RoundedCornerShape(16.dp)) // Rounded corners
                 .border(2.dp, Color.White, RoundedCornerShape(16.dp)) // Border with rounded cornersr

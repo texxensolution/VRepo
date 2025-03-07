@@ -1,7 +1,5 @@
 package com.spmadrid.vrepo.domain.dtos
 
-import android.graphics.Bitmap
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
 
@@ -64,4 +62,9 @@ data class ManualNotifyGroupChatRequest(
 data class NotifyGroupChatResponse(
     val message: String,
     val type: String
+)
+
+@Serializable
+data class CurrentDeviceInfo(
+    val location: List<Double?>
 )

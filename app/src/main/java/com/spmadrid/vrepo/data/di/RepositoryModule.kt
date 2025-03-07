@@ -7,6 +7,7 @@ import com.spmadrid.vrepo.data.repositories.AuthenticationRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.LicensePlateRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.LocationRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.ServerInfoRepositoryImpl
+import com.spmadrid.vrepo.data.repositories.WebSocketRepository
 import com.spmadrid.vrepo.domain.repositories.AuthenticationRepository
 import com.spmadrid.vrepo.domain.repositories.LicensePlateRepository
 import com.spmadrid.vrepo.domain.repositories.LocationRepository
@@ -56,5 +57,11 @@ object RepositoryModule {
         ktorClientProvider: KtorClientProvider
     ): ServerInfoRepository {
         return ServerInfoRepositoryImpl(ktorClientProvider)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWebSocketRepository(ktorClientProvider: KtorClientProvider): WebSocketRepository {
+        return WebSocketRepository(ktorClientProvider)
     }
 }

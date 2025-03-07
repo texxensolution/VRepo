@@ -23,6 +23,7 @@ import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.firstOrNull
@@ -44,6 +45,9 @@ object NetworkModule {
                 url {
                     protocol = URLProtocol.HTTPS
                 }
+            }
+            install(WebSockets) {
+                pingIntervalMillis = 1000L
             }
             install(Auth) {
                 bearer {

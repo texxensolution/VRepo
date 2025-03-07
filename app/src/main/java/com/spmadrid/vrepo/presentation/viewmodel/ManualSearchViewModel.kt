@@ -9,6 +9,7 @@ import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
 import com.spmadrid.vrepo.domain.services.LocationManagerService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -40,12 +41,11 @@ class ManualSearchViewModel @Inject constructor(
         _loading.value = false
     }
 
-    suspend fun search(targetText: String, detectedType: String): Unit {
-
+    suspend fun search(targetText: String, detectedType: String): Boolean {
         if (targetText.isBlank()) {
-            return
+            return false
         }
-        viewModelScope.launch {
+        val isPositive = viewModelScope.async {
             try {
                 setIsLoading()
                 val location = locationManagerService.getCurrentLocation()
@@ -73,17 +73,23 @@ class ManualSearchViewModel @Inject constructor(
                                 location = currentLocation,
                                 detected_type = detectedType
                             )
-                            val response = plateMatchingService.sendManualAlertToGroupChat(manualInput)
+                            plateMatchingService.sendManualAlertToGroupChat(manualInput)
+                            return@async true
                         }
-                        else -> {}
+                        else -> {
+                            return@async false
+                        }
                     }
                 }
             } catch (err: Exception) {
                 Log.e("ManualSearchViewModel", "Error: $err")
                 doneLoading()
+                return@async false
             } finally {
                 doneLoading()
             }
+            return@async false
         }
-        }
+        return isPositive.await()
+    }
 }

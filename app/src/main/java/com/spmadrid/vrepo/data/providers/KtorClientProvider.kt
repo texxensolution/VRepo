@@ -42,10 +42,11 @@ class KtorClientProvider @Inject constructor(
     private fun createHttpClient(token: String?): HttpClient {
         return HttpClient(CIO) {
             defaultRequest {
-                host = "58.97.187.251"
-                port = 8000
+//                host = "58.97.187.251"
+                host = "elephant-humble-herring.ngrok-free.app"
+//                port = 8000
                 url {
-                    protocol = URLProtocol.HTTP
+                    protocol = URLProtocol.HTTPS
                 }
             }
             install(WebSockets) {
@@ -72,6 +73,6 @@ class KtorClientProvider @Inject constructor(
 
     companion object {
         const val TAG = "KtorClientProvider"
-        const val PING_WEBSOCKET_INTERVAL = 80L
+        const val PING_WEBSOCKET_INTERVAL = 2000L
     }
 }
