@@ -18,9 +18,15 @@ class DeviceTrackingViewModel @Inject constructor(
 ) : ViewModel() {
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    fun initWebSocket() {
+    fun startTracking() {
         scope.launch {
             webSocketRepository.connect()
+        }
+    }
+
+    fun stopTracking() {
+        scope.launch {
+            webSocketRepository.disconnect()
         }
     }
 

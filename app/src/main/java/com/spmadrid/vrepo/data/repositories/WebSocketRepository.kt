@@ -2,6 +2,8 @@ package com.spmadrid.vrepo.data.repositories
 
 import android.util.Log
 import com.spmadrid.vrepo.data.providers.KtorClientProvider
+import com.spmadrid.vrepo.domain.dtos.CurrentDeviceInfo
+import com.spmadrid.vrepo.domain.services.LocationManagerService
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.http.HttpMethod
 import io.ktor.websocket.DefaultWebSocketSession
@@ -13,10 +15,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class WebSocketRepository @Inject constructor(
-    private val ktorClientProvider: KtorClientProvider
+    private val ktorClientProvider: KtorClientProvider,
+    private val locationManagerService: LocationManagerService
 ) {
     private var webSocketSession: DefaultWebSocketSession? = null
 
@@ -40,7 +44,18 @@ class WebSocketRepository @Inject constructor(
                     webSocketSession = this
                     _isConnected.value = true
 
-                    send(Frame.Text("websocket started"))
+                    val currentLocation = locationManagerService.getCurrentLocation()
+
+                    val initialCurrentDeviceInfo = CurrentDeviceInfo(
+                        location = listOf(
+                            currentLocation?.latitude ?: 0.0,
+                            currentLocation?.longitude ?: 0.0
+                        )
+                    )
+
+                    val initialData = Json.encodeToString(initialCurrentDeviceInfo)
+
+                    send(Frame.Text(initialData))
 
                     for (message in incoming) {
                         when (message) {

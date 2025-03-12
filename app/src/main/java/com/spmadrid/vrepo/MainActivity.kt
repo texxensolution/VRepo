@@ -17,6 +17,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -49,6 +51,7 @@ import com.ss.android.larksso.LarkSSO
 import dagger.hilt.android.AndroidEntryPoint
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
@@ -113,26 +116,49 @@ class MainActivity : ComponentActivity() {
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     )
                 )
+                val scope = rememberCoroutineScope()
                 val tokenState = authViewModel.tokenState.collectAsState()
 
-                window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+                window.setFlags(
+                    WindowManager.LayoutParams.FLAG_SECURE,
+                    WindowManager.LayoutParams.FLAG_SECURE
+                )
 
-//                LaunchedEffect(tokenState.value) {
-//                    if (!tokenState.value.isNullOrBlank()) {
-//                        deviceTrackingViewModel.initWebSocket()
-//                    }
-//                    while (true) {
-//                        val location = locationManagerService.getCurrentLocation()
-//                        val deviceInfo = CurrentDeviceInfo(
-//                            location = listOf(
-//                                location?.latitude,
-//                                location?.longitude
-//                            )
-//                        )
-//                        deviceTrackingViewModel.sendCurrentDeviceInfo(deviceInfo)
-//                        delay(1000L)
-//                    }
-//                }
+                LaunchedEffect(tokenState.value) {
+                    if (!tokenState.value.isNullOrBlank()) {
+                        deviceTrackingViewModel.startTracking()
+
+                        val job = scope.launch {
+                            while (true) {
+                                val location = locationManagerService.getCurrentLocation()
+
+                                if (location?.latitude == null && location?.longitude == null) {
+                                    delay(5000L)
+                                    continue
+                                }
+
+                                val deviceInfo = CurrentDeviceInfo(
+                                    location = listOf(
+                                        location.latitude,
+                                        location.longitude
+                                    )
+                                )
+                                deviceTrackingViewModel.sendCurrentDeviceInfo(deviceInfo)
+                                delay(5000L)
+                            }
+                        }
+
+                        snapshotFlow { tokenState.value }
+                            .collect { token ->
+                                if (token.isNullOrBlank()) {
+                                    job.cancel()
+                                    deviceTrackingViewModel.stopTracking()
+                                }
+                            }
+                    } else {
+                        deviceTrackingViewModel.stopTracking()
+                    }
+                }
 
                 Scaffold(
                     bottomBar = {
