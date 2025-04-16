@@ -1,6 +1,8 @@
 package com.spmadrid.vrepo.data.di
 
 import android.content.Context
+import com.google.mlkit.vision.text.TextRecognizer
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.spmadrid.vrepo.data.providers.KtorClientProvider
 import com.spmadrid.vrepo.data.services.AuthenticationServiceImpl
 import com.spmadrid.vrepo.data.services.ServerInfoServiceImpl
@@ -65,5 +67,4 @@ object ServiceModule {
     ): ServerInfoService {
         return ServerInfoServiceImpl(serverInfoRepository)
     }
-
 }

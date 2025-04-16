@@ -10,7 +10,4 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(ActivityComponent::class)
-object ApplicationModule {
-//    @Provides
-//    fun provideActivity(activity: Activity): Activity = activity
-}
+object ApplicationModule {}

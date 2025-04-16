@@ -125,7 +125,8 @@ fun ConductionStickerScreen(
                             scope.launch {
                                 manualSearchViewModel.search(
                                     searchText,
-                                    "sticker"
+                                    "sticker",
+                                    "manual_search"
                                 )
                             }
                         },
@@ -178,7 +179,8 @@ fun ConductionStickerScreen(
                                     vehicleModel = result.vehicle_model,
                                     chCode = result.ch_code,
                                     endoDate = result.endo_date,
-                                    status = it.status
+                                    status = it.status,
+                                    priority = result.priority
                                 )
                             }
                         }

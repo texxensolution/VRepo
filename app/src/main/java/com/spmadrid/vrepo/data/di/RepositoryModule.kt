@@ -13,6 +13,7 @@ import com.spmadrid.vrepo.domain.repositories.LicensePlateRepository
 import com.spmadrid.vrepo.domain.repositories.LocationRepository
 import com.spmadrid.vrepo.domain.repositories.ServerInfoRepository
 import com.spmadrid.vrepo.domain.services.LocationManagerService
+import com.spmadrid.vrepo.domain.services.TokenManagerService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -64,8 +65,9 @@ object RepositoryModule {
     @Singleton
     fun provideWebSocketRepository(
         ktorClientProvider: KtorClientProvider,
-        locationManagerService: LocationManagerService
+        locationManagerService: LocationManagerService,
+        tokenManagerService: TokenManagerService
     ): WebSocketRepository {
-        return WebSocketRepository(ktorClientProvider, locationManagerService)
+        return WebSocketRepository(ktorClientProvider, locationManagerService, tokenManagerService)
     }
 }

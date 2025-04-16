@@ -1,6 +1,11 @@
 package com.spmadrid.vrepo.exts
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.os.Environment
 import android.util.Log
 import com.spmadrid.vrepo.domain.dtos.BoundingBox
@@ -75,3 +80,43 @@ fun Bitmap.toByteArray(): ByteArray {
     this.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
     return outputStream.toByteArray()
 }
+
+fun Bitmap.rotate(degrees: Int): Bitmap =
+    if (degrees == 0) this else Bitmap.createBitmap(this, 0, 0, width, height, Matrix().apply { postRotate(degrees.toFloat()) }, true)
+
+fun Bitmap.drawBoundingBox(box: BoundingBox, label: String): Bitmap {
+    val output = copy(this.config ?: Bitmap.Config.ARGB_8888, true)
+    val canvas = Canvas(output)
+
+    // Scale bounding box using the provided method
+    val (topLeft, bottomRight) = this.scaleBoundingBox(box)
+    val (left, top) = topLeft
+    val (right, bottom) = bottomRight
+
+    // Paint for bounding box
+    val paint = Paint().apply {
+        color = Color.RED
+        strokeWidth = 5f
+        style = Paint.Style.STROKE
+    }
+
+    // Paint for text label
+    val textPaint = Paint().apply {
+        color = Color.RED
+        textSize = 40f // Fixed size, adjust as needed
+        typeface = Typeface.DEFAULT_BOLD
+    }
+
+    // Draw bounding box
+    canvas.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), paint)
+
+    // Position label above the box, keeping it inside bounds
+    val labelX = left.toFloat()
+    val labelY = (top - 10).coerceAtLeast(40) // Ensure label isn't offscreen
+
+    // Draw label text
+    canvas.drawText(label, labelX, labelY.toFloat(), textPaint)
+
+    return output
+}
+

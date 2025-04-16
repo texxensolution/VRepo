@@ -24,7 +24,8 @@ fun ConductionResultCard(
     vehicleModel: String,
     chCode: String,
     endoDate: String,
-    status: String
+    status: String,
+    priority: String
 ) {
     Card(
         modifier = Modifier
@@ -56,6 +57,12 @@ fun ConductionResultCard(
                     color = if (status == "POSITIVE") Color.Red else Color.Yellow
                 )
             }
+
+            Text(
+                text = "Priority: $priority",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
 
             Text(
                 text = "Plate Number: $plateNumber",

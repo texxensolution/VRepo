@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.spmadrid.vrepo.R
 import com.spmadrid.vrepo.domain.dtos.NotificationEvent
+import com.spmadrid.vrepo.presentation.ui.theme.Orange400
+import com.spmadrid.vrepo.presentation.ui.theme.Red400
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -68,32 +70,37 @@ fun ShiningFloatingNotification(
         animationSpec = infiniteRepeatable(
             animation = tween(1500, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
-        ), label = ""
+        ),
+        label = ""
     )
 
     val gradientBrush = Brush.linearGradient(
-        colors = listOf(Color.Red, Color.Yellow, Color.Red),
+        colors = when (notificationEvent.priority) {
+            "MEDIUM" -> listOf(Orange400, Color.Green, Orange400)
+            "HIGH" -> listOf(Color.Red, Color.Yellow, Color.Red)
+            else -> listOf(Color.Black, Color.Gray, Color.Black) // Default for LOW or others
+        },
         start = Offset(animatedOffset, 0f),
         end = Offset(animatedOffset + 200f, 200f)
     )
 
-        LaunchedEffect(showNotification) {
-            if (showNotification) {
-                scope.launch {
-                    vibrator = triggerContinuousVibration(context)
-                    mediaPlayer = playLoopingBuzzSound(context)
-                }
-                delay(3000) // Auto-dismiss after 3 seconds
-                vibrator?.cancel()
-                mediaPlayer?.stop()
-                mediaPlayer?.release()
+    LaunchedEffect(showNotification) {
+        if (showNotification) {
+            scope.launch {
+                vibrator = triggerContinuousVibration(context)
+                mediaPlayer = playLoopingBuzzSound(context)
             }
+            delay(3000) // Auto-dismiss after 3 seconds
+            vibrator?.cancel()
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
         }
+    }
 
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(top = 40.dp)
-        .zIndex(5f)
+        .zIndex(25f)
     ) {
         AnimatedVisibility(
             visible = showNotification,
@@ -109,7 +116,7 @@ fun ShiningFloatingNotification(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    "🚨 PLATE: ${notificationEvent.plate} - POSITIVE 🚨",
+                    "🚨 PLATE: ${notificationEvent.plate}(POSITIVE)(${notificationEvent.priority}) 🚨",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -127,7 +134,6 @@ fun triggerContinuousVibration(context: Context): Vibrator {
         @Suppress("DEPRECATION")
         context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
     }
-
     val pattern = longArrayOf(0, 500, 500)
     val vibrationEffect = VibrationEffect.createWaveform(pattern, 0)
     vibrator.vibrate(vibrationEffect)

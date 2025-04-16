@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Repo.AI</string>
     <string name="lark_app_id">cli_a6889e23ee38500a</string>
+    <string name="app_version">4.0.0</string>
 </resources>

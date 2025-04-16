@@ -21,24 +21,25 @@ data class Account(
     val plate_no: String,
     val vehicle_model: String,
     val ch_code: String,
-    val endo_date: String
+    val endo_date: String,
+    val priority: String,
 )
 
 @Serializable
 data class ClientDetailsResponse(
     val plate: String,
-    val detected_type: String,
+    val detection_type: String,
     val status: String,
     val accounts: List<Account>,
-    val location: List<Double>,
     val count: Int
 )
 
 @Serializable
 data class PlateCheckInput(
     val plate: String,
-    val detected_type: String,
-    val location: List<Double>
+    val detection_type: String,
+    val location: List<Double>,
+    val metadata: Map<String, String>?
 )
 
 @Serializable
@@ -54,7 +55,7 @@ data class NotifyGroupChatRequest(
 @Serializable
 data class ManualNotifyGroupChatRequest(
     val plate: String,
-    val detected_type: String,
+    val detection_type: String,
     val location: List<Double>
 )
 
@@ -65,6 +66,12 @@ data class NotifyGroupChatResponse(
 )
 
 @Serializable
-data class CurrentDeviceInfo(
-    val location: List<Double?>
+data class CurrentDeviceLocation(
+    val latitude: Double,
+    val longitude: Double
+)
+
+data class GetPlateStatusResponse(
+    val status: PlateStatus,
+    val priority: String?
 )

@@ -75,6 +75,7 @@ tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.r
 tensorflow-lite-gpu-api = { module = "org.tensorflow:tensorflow-lite-gpu-api", version.ref = "tensorflowLiteGpuApi" }
 tensorflow-lite-gpu-delegate-plugin = { module = "org.tensorflow:tensorflow-lite-gpu-delegate-plugin", version.ref = "tensorflowLiteGpuDelegatePlugin" }
 tensorflow-lite-metadata = { module = "org.tensorflow:tensorflow-lite-metadata", version.ref = "tensorflowLiteMetadata" }
+tensorflow-lite-experimental-acceleration = { module = "org.tensorflow:tensorflow-lite-experimental-acceleration", version.ref = "tensorflowLite"}
 tensorflow-lite-select-tf-ops = { module = "org.tensorflow:tensorflow-lite-select-tf-ops", version.ref = "tensorflowLiteSelectTfOps" }
 tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
 text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "textRecognition" }

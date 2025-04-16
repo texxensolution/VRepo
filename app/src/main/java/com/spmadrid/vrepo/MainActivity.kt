@@ -3,10 +3,12 @@ package com.spmadrid.vrepo
 import android.Manifest
 import org.osmdroid.config.Configuration
 import android.annotation.SuppressLint
+import android.app.PictureInPictureParams
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.Rational
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,7 +32,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.spmadrid.vrepo.domain.dtos.BottomNavItem
-import com.spmadrid.vrepo.domain.dtos.CurrentDeviceInfo
+import com.spmadrid.vrepo.domain.dtos.CurrentDeviceLocation
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
@@ -47,6 +49,7 @@ import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.DeviceTrackingViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.ManualSearchViewModel
+import com.spmadrid.vrepo.presentation.viewmodel.UserInterfaceStateViewModel
 import com.ss.android.larksso.LarkSSO
 import dagger.hilt.android.AndroidEntryPoint
 import io.ktor.client.HttpClient
@@ -70,21 +73,31 @@ class MainActivity : ComponentActivity() {
     lateinit var client: HttpClient
 
     @Inject
-    lateinit var serverInfoService: ServerInfoService
-
-    @Inject
     lateinit var locationManagerService: LocationManagerService
 
     val cameraViewModel: CameraViewModel by viewModels()
     val authViewModel: AuthenticateViewModel by viewModels()
     val manualSearchViewModel: ManualSearchViewModel by viewModels()
     val deviceTrackingViewModel: DeviceTrackingViewModel by viewModels()
+    val uiStateViewModel: UserInterfaceStateViewModel by viewModels()
 
     override fun onResume() {
         super.onResume()
         LarkSSO.inst().parseIntent(this, intent)
     }
 
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        this.triggerPictureInPictureMode()
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        Log.d("PictureMode", "isInPictureMode: ${isInPictureInPictureMode.toString()}")
+        uiStateViewModel.setIsInPictureMode(
+            pictureMode = isInPictureInPictureMode
+        )
+    }
 
     @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -92,6 +105,17 @@ class MainActivity : ComponentActivity() {
         data?.let {
             LarkSSO.inst().parseIntent(this, it)
             Log.d("MainActivity", it.data.toString())
+        }
+    }
+
+    private fun triggerPictureInPictureMode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val pipParams = PictureInPictureParams.Builder()
+                .setAspectRatio(Rational(16, 9)) // Optional: set aspect ratio
+                .build()
+            enterPictureInPictureMode(pipParams)
+        } else {
+            enterPictureInPictureMode() // For older APIs
         }
     }
 
@@ -116,6 +140,7 @@ class MainActivity : ComponentActivity() {
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     )
                 )
+                val isInPictureMode by uiStateViewModel.isInPictureMode.collectAsState()
                 val scope = rememberCoroutineScope()
                 val tokenState = authViewModel.tokenState.collectAsState()
 
@@ -137,11 +162,9 @@ class MainActivity : ComponentActivity() {
                                     continue
                                 }
 
-                                val deviceInfo = CurrentDeviceInfo(
-                                    location = listOf(
-                                        location.latitude,
-                                        location.longitude
-                                    )
+                                val deviceInfo = CurrentDeviceLocation(
+                                    latitude = location.latitude,
+                                    longitude = location.longitude
                                 )
                                 deviceTrackingViewModel.sendCurrentDeviceInfo(deviceInfo)
                                 delay(5000L)
@@ -162,7 +185,7 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     bottomBar = {
-                        if (currentRoute  !in listOf("permission", "login")) {
+                        if (currentRoute  !in listOf("permission", "login") && !isInPictureMode) {
                             BottomNavigationBar(navController)
                         }
                     },
@@ -170,7 +193,7 @@ class MainActivity : ComponentActivity() {
                         if (currentRoute in listOf(
                                 BottomNavItem.Home.route,
                                 BottomNavItem.Conduction.route
-                        )) { // Show only on second screen
+                        ) && !isInPictureMode) { // Show only on second screen
                             SpeechToTextFloatingButton(
                                 currentRoute,
                                 manualSearchViewModel,
@@ -206,8 +229,11 @@ class MainActivity : ComponentActivity() {
                                 cameraViewModel = cameraViewModel,
                                 authViewModel = authViewModel,
                                 deviceTrackingViewModel = deviceTrackingViewModel,
-                                serverInfoService = serverInfoService,
+                                userInterfaceStateViewModel = uiStateViewModel,
                                 locationManagerService = locationManagerService,
+                                triggerPictureInPictureMode = {
+                                    triggerPictureInPictureMode()
+                                }
                             )
                         }
                         composable(BottomNavItem.Conduction.route) {

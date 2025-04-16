@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.spmadrid.vrepo.domain.repositories.LocationRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 
@@ -19,4 +20,9 @@ class LocationManagerService @Inject constructor(
     suspend fun getCurrentLocation(): Location? {
         return locationRepository.getCurrentLocation()
     }
+
+    fun observeLocationUpdates(): Flow<Location> {
+        return locationRepository.observeLocationUpdates()
+    }
+
 }

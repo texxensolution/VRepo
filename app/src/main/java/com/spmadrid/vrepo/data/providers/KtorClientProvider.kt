@@ -1,7 +1,9 @@
 package com.spmadrid.vrepo.data.providers
 
 import android.util.Log
+import com.spmadrid.vrepo.constants.Constants
 import com.spmadrid.vrepo.domain.services.TokenManagerService
+import com.spmadrid.vrepo.utils.JWT
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.auth.Auth
@@ -33,6 +35,13 @@ class KtorClientProvider @Inject constructor(
     init {
         scope.launch {
             tokenManagerService.tokenFlow.collectLatest { token ->
+                if (token != null) {
+                    val isExpired = JWT.isTokenExpired(token)
+                    if (isExpired == true) {
+                        Log.d("JWT", "Clear token")
+                        tokenManagerService.clearToken()
+                    }
+                }
                 _client.value = createHttpClient(token)
                 Log.d(TAG, "Initialized HTTP Client: reloaded with new = $token")
             }
@@ -42,7 +51,7 @@ class KtorClientProvider @Inject constructor(
     private fun createHttpClient(token: String?): HttpClient {
         return HttpClient(CIO) {
             defaultRequest {
-                host = "58.97.187.251"
+                host = Constants.SERVER_URL
 //                host = "elephant-humble-herring.ngrok-free.app"
                 port = 8000
                 url {

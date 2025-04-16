@@ -19,8 +19,8 @@ android {
         applicationId = "com.spmadrid.vrepo"
         minSdk = 29
         targetSdk = 34
-        versionCode = 2
-        versionName = "3.0.1"
+        versionCode = 5
+        versionName = "4.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,6 +33,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+//        debug {
+//            isMinifyEnabled = true
+//        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -86,7 +89,7 @@ dependencies {
     implementation(libs.tensorflow.lite.gpu)
     implementation(libs.tensorflow.lite.select.tf.ops)
     implementation(libs.tensorflow.lite.metadata)
-
+    implementation("com.auth0:java-jwt:4.4.0")
     // mlkit text recognition
     implementation(libs.text.recognition)
 

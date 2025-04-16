@@ -2,6 +2,10 @@ package com.spmadrid.vrepo.data.repositories
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Rect
+import android.util.Log
+import androidx.core.graphics.createBitmap
 import com.spmadrid.vrepo.domain.dtos.BoundingBox
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
 import org.tensorflow.lite.DataType
@@ -18,6 +22,11 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import androidx.core.graphics.scale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.tensorflow.lite.nnapi.NnApiDelegate
+import java.io.File
 
 class ObjectDetectorImpl(
     private val context: Context,
@@ -37,53 +46,82 @@ class ObjectDetectorImpl(
         .add(CastOp(INPUT_IMAGE_TYPE))
         .build()
 
+    private lateinit var tensorImage: TensorImage
+    private lateinit var outputBuffer: TensorBuffer
+
+    private lateinit var reusableBitmap: Bitmap
+
     init { this.initialize() }
 
-    override suspend fun detect(frame: Bitmap): List<BoundingBox>? {
-        if (tensorWidth == 0 || tensorHeight == 0 || numChannel == 0 || numElements == 0) return null
+    override suspend fun detect(frame: Bitmap): List<BoundingBox>?  = withContext(Dispatchers.IO) {
+        if (!::tensorImage.isInitialized || !::outputBuffer.isInitialized) return@withContext null
 
-        val resizedBitmap = Bitmap.createScaledBitmap(
-            frame,
-            tensorWidth, tensorHeight, false)
-        val tensorImage = TensorImage(INPUT_IMAGE_TYPE)
-        tensorImage.load(resizedBitmap)
+        // Reuse the preallocated bitmap instead of creating a new one
+        val canvas = Canvas(reusableBitmap)
+        canvas.drawBitmap(frame, null, Rect(0, 0, tensorWidth, tensorHeight), null)
 
+        // Load and process the tensor image
+        tensorImage.load(reusableBitmap)
         val processedImage = imageProcessor.process(tensorImage)
-        val imageBuffer = processedImage.buffer
 
-        val output = TensorBuffer.createFixedSize(
-            intArrayOf(1, numChannel, numElements),
-            OUTPUT_IMAGE_TYPE
-        )
+        // Use the same ByteBuffer for inference (reduce memory allocation)
+        interpreter.run(processedImage.buffer, outputBuffer.buffer)
 
-        interpreter.run(imageBuffer, output.buffer)
-
-        val bestBoxes = bestBox(output.floatArray)
-
-        if (bestBoxes != null) {
-            return bestBoxes
-        }
-
-        return null
+        return@withContext bestBox(outputBuffer.floatArray)
     }
 
     override fun close() {
         interpreter.close()
     }
 
-    override fun initialize() {
-        val compatibilityList = CompatibilityList()
+    fun initializeInterpreter(): Interpreter {
+        val options = Interpreter.Options()
 
-        val options = Interpreter.Options().apply {
+        try {
+            val compatibilityList = CompatibilityList()
+
             if (compatibilityList.isDelegateSupportedOnThisDevice) {
-                val delegateOptions = compatibilityList.bestOptionsForThisDevice
-                this.addDelegate(GpuDelegate(delegateOptions))
-            } else {
-                this.setNumThreads(NUM_THREADS)
+                // Prefer OpenCL (default TensorFlow Lite behavior)
+                val gpuDelegate = GpuDelegate(compatibilityList.bestOptionsForThisDevice)
+                options.addDelegate(gpuDelegate)
+                println("Using OpenCL GPU Delegate")
+                return Interpreter(FileUtil.loadMappedFile(context, modelPath), options)
             }
+        } catch (e: Exception) {
+            println("OpenCL failed: ${e.message}, trying Vulkan...")
         }
-        val model = FileUtil.loadMappedFile(context, modelPath)
-        interpreter = Interpreter(model, options)
+
+        try {
+            // Try Vulkan if OpenCL is not available
+            System.setProperty("org.tensorflow.lite.gpu.disable_opencl", "true") // Disable OpenCL explicitly
+            val gpuOptions = GpuDelegate.Options().apply {
+                this.setInferencePreference(GpuDelegate.Options.INFERENCE_PREFERENCE_FAST_SINGLE_ANSWER)
+            }
+            val gpuDelegate = GpuDelegate(gpuOptions)
+            options.addDelegate(gpuDelegate)
+            println("Using Vulkan GPU Delegate")
+            return Interpreter(FileUtil.loadMappedFile(context, modelPath), options)
+        } catch (e: Exception) {
+            println("Vulkan failed: ${e.message}, trying NNAPI...")
+        }
+
+        try {
+            // Try NNAPI as a fallback
+            val nnapiDelegate = NnApiDelegate()
+            options.addDelegate(nnapiDelegate)
+            println("Using NNAPI Delegate")
+            return Interpreter(FileUtil.loadMappedFile(context, modelPath), options)
+        } catch (e: Exception) {
+            println("NNAPI failed: ${e.message}, using CPU fallback")
+        }
+
+        // If all fails, fall back to CPU
+        options.setNumThreads(Runtime.getRuntime().availableProcessors())
+        return Interpreter(FileUtil.loadMappedFile(context, modelPath), options)
+    }
+
+    override fun initialize() {
+        interpreter = initializeInterpreter()
 
         val inputShape = interpreter.getInputTensor(0)?.shape()
         val outputShape = interpreter.getOutputTensor(0)?.shape()
@@ -104,6 +142,11 @@ class ObjectDetectorImpl(
             numElements = outputShape[2]
         }
 
+        // Initialize buffers once
+        tensorImage = TensorImage(INPUT_IMAGE_TYPE)
+        outputBuffer = TensorBuffer.createFixedSize(intArrayOf(1, numChannel, numElements), OUTPUT_IMAGE_TYPE)
+        reusableBitmap = createBitmap(tensorWidth, tensorHeight)
+
         try {
             val inputStream: InputStream = context.assets.open(labelPath)
             val reader = BufferedReader(InputStreamReader(inputStream))
@@ -118,6 +161,24 @@ class ObjectDetectorImpl(
             inputStream.close()
         } catch (e: IOException) {
             e.printStackTrace()
+        }
+    }
+
+    fun isOpenCLAvailable(): Boolean {
+        return try {
+            val openCLPaths = arrayOf(
+                "/system/lib/libOpenCL.so",
+                "/system/lib64/libOpenCL.so",
+                "/vendor/lib/libOpenCL.so",
+                "/vendor/lib64/libOpenCL.so"
+            )
+
+            val available = openCLPaths.any { File(it).exists() }
+            Log.d("OpenCLCheck", "OpenCL Available: $available")
+            available
+        } catch (e: Exception) {
+            Log.e("OpenCLCheck", "Error checking OpenCL availability", e)
+            false
         }
     }
 

@@ -94,7 +94,7 @@ fun SpeechToTextFloatingButton(
                             .removeSpecialCharacters()
                             .uppercase()
                         manualSearchViewModel.setSearchText(text)
-                        val queryHaveResult = manualSearchViewModel.search(text, "sticker")
+                        val queryHaveResult = manualSearchViewModel.search(text, "sticker", "voice_search")
                         if (queryHaveResult && currentRoute != BottomNavItem.Conduction.route) {
                             navController.navigate(BottomNavItem.Conduction.route) {
                                 launchSingleTop = true
@@ -138,11 +138,6 @@ fun SpeechToTextFloatingButton(
         modifier = Modifier.offset(y = (60.dp)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            if (isListening) "Listening..." else "Hold to Speak",
-            color = Blue800
-        )
-        Spacer(modifier = Modifier.height(8.dp))
         FloatingActionButton(
             onClick = {},
             modifier = Modifier

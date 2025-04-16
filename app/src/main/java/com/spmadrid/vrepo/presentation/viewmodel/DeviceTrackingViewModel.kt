@@ -2,11 +2,12 @@ package com.spmadrid.vrepo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.spmadrid.vrepo.data.repositories.WebSocketRepository
-import com.spmadrid.vrepo.domain.dtos.CurrentDeviceInfo
+import com.spmadrid.vrepo.domain.dtos.CurrentDeviceLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -17,6 +18,7 @@ class DeviceTrackingViewModel @Inject constructor(
     private val webSocketRepository: WebSocketRepository
 ) : ViewModel() {
     private val scope = CoroutineScope(Dispatchers.IO)
+    val isConnected: StateFlow<Boolean> = webSocketRepository.isConnected
 
     fun startTracking() {
         scope.launch {
@@ -30,7 +32,7 @@ class DeviceTrackingViewModel @Inject constructor(
         }
     }
 
-    fun sendCurrentDeviceInfo(currentDeviceInfo: CurrentDeviceInfo) {
+    fun sendCurrentDeviceInfo(currentDeviceInfo: CurrentDeviceLocation) {
         scope.launch {
             val data = Json.encodeToString(currentDeviceInfo)
             webSocketRepository.sendMessage(data)

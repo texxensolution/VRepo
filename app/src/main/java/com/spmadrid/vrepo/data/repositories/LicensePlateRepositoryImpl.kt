@@ -3,6 +3,7 @@ package com.spmadrid.vrepo.data.repositories
 import android.util.Log
 import com.spmadrid.vrepo.data.providers.KtorClientProvider
 import com.spmadrid.vrepo.domain.dtos.ClientDetailsResponse
+import com.spmadrid.vrepo.domain.dtos.GetPlateStatusResponse
 import com.spmadrid.vrepo.domain.dtos.ManualNotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatResponse
@@ -49,6 +50,40 @@ class LicensePlateRepositoryImpl @Inject constructor(
             "POSITIVE" -> PlateStatus.POSITIVE
             "FOR_CONFIRMATION" -> PlateStatus.FOR_CONFIRMATION
             else -> PlateStatus.NEGATIVE
+        }
+    }
+
+    override suspend fun getPlateStatus(plateDetails: PlateCheckInput): GetPlateStatusResponse {
+        val response = ktorClientProvider.client.value.post {
+            url {
+                appendPathSegments("api", "v4", "plate", "check")
+            }
+            contentType(ContentType.Application.Json)
+            setBody(plateDetails)
+        }
+        if (response.status == HttpStatusCode.Forbidden && !response.status.isSuccess()) {
+            return GetPlateStatusResponse(
+                status = PlateStatus.NEGATIVE,
+                priority = null
+            )
+        }
+
+        val body = response.body<ClientDetailsResponse>()
+        Log.d(TAG, "isPositive: $body")
+
+        return when (body.status) {
+            "POSITIVE" -> GetPlateStatusResponse(
+                status = PlateStatus.POSITIVE,
+                priority = body.accounts[0].priority
+            )
+            "FOR_CONFIRMATION" -> GetPlateStatusResponse(
+                status = PlateStatus.FOR_CONFIRMATION,
+                priority = null
+            )
+            else -> GetPlateStatusResponse(
+                status = PlateStatus.NEGATIVE,
+                priority = null
+            )
         }
     }
 

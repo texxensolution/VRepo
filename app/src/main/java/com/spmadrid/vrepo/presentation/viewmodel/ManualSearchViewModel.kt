@@ -41,7 +41,7 @@ class ManualSearchViewModel @Inject constructor(
         _loading.value = false
     }
 
-    suspend fun search(targetText: String, detectedType: String): Boolean {
+    suspend fun search(targetText: String, detectedType: String, triggerType: String): Boolean {
         if (targetText.isBlank()) {
             return false
         }
@@ -58,8 +58,11 @@ class ManualSearchViewModel @Inject constructor(
 
                     val input = PlateCheckInput(
                         plate = targetText,
-                        detected_type = detectedType,
-                        location = currentLocation
+                        detection_type = detectedType,
+                        location = currentLocation,
+                        metadata = mapOf(
+                            "trigger_type" to triggerType
+                        )
                     )
 
                     val matched = plateMatchingService.getClientDetails(input)
@@ -71,7 +74,7 @@ class ManualSearchViewModel @Inject constructor(
                             val manualInput = ManualNotifyGroupChatRequest(
                                 plate = matched.plate,
                                 location = currentLocation,
-                                detected_type = detectedType
+                                detection_type = detectedType
                             )
                             plateMatchingService.sendManualAlertToGroupChat(manualInput)
                             return@async true

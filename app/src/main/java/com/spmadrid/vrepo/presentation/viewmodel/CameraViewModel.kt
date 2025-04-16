@@ -3,6 +3,7 @@ package com.spmadrid.vrepo.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spmadrid.vrepo.domain.dtos.BoundingBox
 import com.spmadrid.vrepo.domain.dtos.NotificationEvent
 import com.spmadrid.vrepo.domain.dtos.NotifyGroupChatRequest
 import com.spmadrid.vrepo.domain.dtos.PlateCheckInput
@@ -10,6 +11,7 @@ import com.spmadrid.vrepo.domain.dtos.PlateStatus
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
 import com.spmadrid.vrepo.domain.services.LocationManagerService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +47,16 @@ class CameraViewModel @Inject constructor(
         }
     }
 
+    private val _detectedBoundingBox: MutableStateFlow<BoundingBox?> = MutableStateFlow(null)
+    val detectedBoundingBox: StateFlow<BoundingBox?> = _detectedBoundingBox
+
+    fun updateBoundingBox(box: BoundingBox) {
+        viewModelScope.launch(Dispatchers.Main) {
+            Log.d("WhenBoundingBoxIsPresent", "$box")
+            _detectedBoundingBox.value = box
+        }
+    }
+
     private val _showNotification: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val showNotification: StateFlow<Boolean> = _showNotification
 
@@ -62,8 +74,9 @@ class CameraViewModel @Inject constructor(
 
     fun processing(
         text: String,
-        detectedType: String,
-        frame: ByteArray
+        detectionType: String,
+        frame: ByteArray,
+        metadata: Map<String, String>?
     ) {
         updateDetectedText(text)
 
@@ -76,21 +89,22 @@ class CameraViewModel @Inject constructor(
 
             val details = PlateCheckInput(
                 plate = text,
-                detected_type = detectedType,
-                location = listOf(location.latitude, location.longitude)
+                detection_type = detectionType,
+                location = listOf(location.latitude, location.longitude),
+                metadata = metadata
             )
 
             try {
-                val status = plateMatchingService.getStatus(details)
+                val response = plateMatchingService.getPlateStatus(details)
 
-                when(status) {
+                when(response.status) {
                     PlateStatus.POSITIVE -> {
-                        notifyApp(NotificationEvent(text))
+                        notifyApp(NotificationEvent(text, response.priority.toString()))
                         plateMatchingService.sendAlertToGroupChat(
                             NotifyGroupChatRequest(
                                 plate = text,
                                 image = frame,
-                                detectionType = detectedType,
+                                detectionType = detectionType,
                                 latitude = location.latitude,
                                 longitude = location.longitude
                             )
@@ -101,7 +115,7 @@ class CameraViewModel @Inject constructor(
                             NotifyGroupChatRequest(
                                 plate = text,
                                 image = frame,
-                                detectionType = detectedType,
+                                detectionType = detectionType,
                                 latitude = location.latitude,
                                 longitude = location.longitude
                             )

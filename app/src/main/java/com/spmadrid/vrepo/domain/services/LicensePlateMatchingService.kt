@@ -10,6 +10,7 @@ class LicensePlateMatchingService @Inject constructor(
     private val licensePlateRepository: LicensePlateRepository
 ){
     suspend fun getStatus(plateDetails: PlateCheckInput) = licensePlateRepository.getStatus(plateDetails)
+    suspend fun getPlateStatus(plateDetails: PlateCheckInput) = licensePlateRepository.getPlateStatus(plateDetails)
     suspend fun sendAlertToGroupChat(notifyGroupChatRequest: NotifyGroupChatRequest) = licensePlateRepository.sendAlertToGroupChat(notifyGroupChatRequest)
     suspend fun getClientDetails(plateDetails: PlateCheckInput) = licensePlateRepository.getClientDetails(plateDetails)
     suspend fun sendManualAlertToGroupChat(manualNotifyGroupChatRequest: ManualNotifyGroupChatRequest) = licensePlateRepository.sendManualAlertToGroupChat(manualNotifyGroupChatRequest)
