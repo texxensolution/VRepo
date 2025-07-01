@@ -34,21 +34,22 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.spmadrid.vrepo.domain.dtos.BottomNavItem
 import com.spmadrid.vrepo.domain.dtos.CurrentDeviceLocation
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
+import com.spmadrid.vrepo.domain.repositories.UserSummaryRepository
 import com.spmadrid.vrepo.domain.services.AuthenticationService
 import com.spmadrid.vrepo.domain.services.LicensePlateMatchingService
 import com.spmadrid.vrepo.domain.services.LocationManagerService
-import com.spmadrid.vrepo.domain.services.ServerInfoService
 import com.spmadrid.vrepo.presentation.components.BottomNavigationBar
 import com.spmadrid.vrepo.presentation.components.SpeechToTextFloatingButton
 import com.spmadrid.vrepo.presentation.screens.CameraDetectionScreen
+import com.spmadrid.vrepo.presentation.screens.CommandCenterScreen
 import com.spmadrid.vrepo.presentation.screens.ConductionStickerScreen
 import com.spmadrid.vrepo.presentation.screens.LoginScreen
 import com.spmadrid.vrepo.presentation.screens.PermissionScreen
 import com.spmadrid.vrepo.presentation.ui.theme.VRepoTheme
 import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
-import com.spmadrid.vrepo.presentation.viewmodel.DeviceTrackingViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.ManualSearchViewModel
+import com.spmadrid.vrepo.presentation.viewmodel.PersistentSocketViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.UserInterfaceStateViewModel
 import com.ss.android.larksso.LarkSSO
 import dagger.hilt.android.AndroidEntryPoint
@@ -75,10 +76,13 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var locationManagerService: LocationManagerService
 
+    @Inject
+    lateinit var userSummaryRepository: UserSummaryRepository
+
     val cameraViewModel: CameraViewModel by viewModels()
     val authViewModel: AuthenticateViewModel by viewModels()
     val manualSearchViewModel: ManualSearchViewModel by viewModels()
-    val deviceTrackingViewModel: DeviceTrackingViewModel by viewModels()
+    val persistentSocketViewModel: PersistentSocketViewModel by viewModels()
     val uiStateViewModel: UserInterfaceStateViewModel by viewModels()
 
     override fun onResume() {
@@ -108,15 +112,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun triggerPictureInPictureMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val pipParams = PictureInPictureParams.Builder()
-                .setAspectRatio(Rational(16, 9)) // Optional: set aspect ratio
-                .build()
-            enterPictureInPictureMode(pipParams)
-        } else {
-            enterPictureInPictureMode() // For older APIs
-        }
+        val pipParams = PictureInPictureParams.Builder()
+            .setAspectRatio(Rational(16, 9)) // Optional: set aspect ratio
+            .build()
+        enterPictureInPictureMode(pipParams)
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -151,7 +152,7 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(tokenState.value) {
                     if (!tokenState.value.isNullOrBlank()) {
-                        deviceTrackingViewModel.startTracking()
+                        persistentSocketViewModel.startPersistentConnection()
 
                         val job = scope.launch {
                             while (true) {
@@ -166,7 +167,9 @@ class MainActivity : ComponentActivity() {
                                     latitude = location.latitude,
                                     longitude = location.longitude
                                 )
-                                deviceTrackingViewModel.sendCurrentDeviceInfo(deviceInfo)
+                                persistentSocketViewModel.sendCurrentDeviceInfo(deviceInfo)
+                                val summary = userSummaryRepository.getUserSummary()
+                                Log.d("UserSummary", summary.toString())
                                 delay(5000L)
                             }
                         }
@@ -175,17 +178,17 @@ class MainActivity : ComponentActivity() {
                             .collect { token ->
                                 if (token.isNullOrBlank()) {
                                     job.cancel()
-                                    deviceTrackingViewModel.stopTracking()
+                                    persistentSocketViewModel.stopPersistentConnection()
                                 }
                             }
                     } else {
-                        deviceTrackingViewModel.stopTracking()
+                        persistentSocketViewModel.stopPersistentConnection()
                     }
                 }
 
                 Scaffold(
                     bottomBar = {
-                        if (currentRoute  !in listOf("permission", "login") && !isInPictureMode) {
+                        if (currentRoute !in listOf("permission", "login") && !isInPictureMode) {
                             BottomNavigationBar(navController)
                         }
                     },
@@ -228,18 +231,22 @@ class MainActivity : ComponentActivity() {
                                 objectDetector = objectDetector,
                                 cameraViewModel = cameraViewModel,
                                 authViewModel = authViewModel,
-                                deviceTrackingViewModel = deviceTrackingViewModel,
+                                persistentSocketViewModel = persistentSocketViewModel,
                                 userInterfaceStateViewModel = uiStateViewModel,
                                 locationManagerService = locationManagerService,
                                 triggerPictureInPictureMode = {
                                     triggerPictureInPictureMode()
-                                }
+                                },
+                                userSummaryRepository = userSummaryRepository
                             )
                         }
                         composable(BottomNavItem.Conduction.route) {
                             ConductionStickerScreen(
                                 manualSearchViewModel = manualSearchViewModel
                             )
+                        }
+                        composable(BottomNavItem.CommandCenter.route) {
+                            CommandCenterScreen()
                         }
                     }
                 }

@@ -25,7 +25,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,9 +67,19 @@ fun ConductionStickerScreen(
     manualSearchViewModel: ManualSearchViewModel
 ) {
     val searchText by manualSearchViewModel.searchText.collectAsState()
-    val searchResult = manualSearchViewModel.searchResult.collectAsState()
+    val searchResult by manualSearchViewModel.searchResult.collectAsState( initial = null)
     val loading by manualSearchViewModel.loading.collectAsState()
     val scope = rememberCoroutineScope()
+    val ignoreCurrentResult by remember {
+        derivedStateOf {
+            searchResult?.status == "POSITIVE" && searchResult?.accounts[0]?.priority == "LOW"
+        }
+    }
+    val isPositiveResult by remember {
+        derivedStateOf {
+            searchResult?.status == "POSITIVE"
+        }
+    }
 
 
     Box(modifier = Modifier
@@ -164,24 +176,37 @@ fun ConductionStickerScreen(
             if (searchResult != null) {
                 Column(modifier = Modifier, verticalArrangement = spacedBy(12.dp)) {
                     Row(horizontalArrangement = spacedBy(8.dp)) {
-                        Text("Search Results", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Gray900)
-                        if (searchResult.value?.count == 0) {
-                            Text("(0 Found)", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = Gray900)
+                        Text(
+                            "Search Results",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp,
+                            color = Gray900
+                        )
+                        if (searchResult?.count == 0 || searchResult?.status == "FOR_CONFIRMATION" || ignoreCurrentResult) {
+                            Text(
+                                "(0 Found)",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp,
+                                color = Gray900
+                            )
                         }
                     }
-                    LazyColumn(
-                        verticalArrangement = spacedBy(12.dp),
-                    ) {
-                        searchResult.value?.let {
-                            items(it.accounts) { result ->
-                                ConductionResultCard(
-                                    plateNumber = result.plate_no,
-                                    vehicleModel = result.vehicle_model,
-                                    chCode = result.ch_code,
-                                    endoDate = result.endo_date,
-                                    status = it.status,
-                                    priority = result.priority
-                                )
+
+                    if (!ignoreCurrentResult && isPositiveResult) {
+                        LazyColumn(
+                            verticalArrangement = spacedBy(12.dp),
+                        ) {
+                            searchResult?.let {
+                                items(it.accounts) { result ->
+                                    ConductionResultCard(
+                                        plateNumber = result.plate_no,
+                                        vehicleModel = result.vehicle_model,
+                                        chCode = result.ch_code,
+                                        endoDate = result.endo_date,
+                                        status = it.status,
+                                        priority = result.priority
+                                    )
+                                }
                             }
                         }
                     }

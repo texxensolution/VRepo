@@ -27,7 +27,10 @@ class LocationRepositoryImpl @Inject constructor(
 ) : LocationRepository {
 
     @RequiresPermission(
-        allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION]
+        allOf = [
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ]
     )
     override fun observeLocationUpdates(): Flow<Location> = callbackFlow {
         val locationRequest = LocationRequest.Builder(

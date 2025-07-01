@@ -1,3 +1,6 @@
+import com.android.build.api.dsl.ApkSigningConfig
+import org.gradle.kotlin.dsl.release
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -19,23 +22,34 @@ android {
         applicationId = "com.spmadrid.vrepo"
         minSdk = 29
         targetSdk = 34
-        versionCode = 5
-        versionName = "4.0.1"
+        versionCode = 10
+        versionName = "4.0.3-revert"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = "repo-ai"
+            keyPassword = "spm123"
+            storeFile = file(System.getProperty("user.home") + "/keystores/repoai.jks")
+            storePassword = "spm123"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("release") // <<< ADD THIS
+        }
         release {
+            isDebuggable = true
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
-//        debug {
-//            isMinifyEnabled = true
-//        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -103,6 +117,7 @@ dependencies {
 
     implementation(libs.fastjson)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -131,4 +146,5 @@ dependencies {
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.material3)
+
 }

@@ -7,13 +7,16 @@ import com.spmadrid.vrepo.data.repositories.AuthenticationRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.LicensePlateRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.LocationRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.ServerInfoRepositoryImpl
+import com.spmadrid.vrepo.data.repositories.UserSummaryRepositoryImpl
 import com.spmadrid.vrepo.data.repositories.WebSocketRepository
 import com.spmadrid.vrepo.domain.repositories.AuthenticationRepository
 import com.spmadrid.vrepo.domain.repositories.LicensePlateRepository
 import com.spmadrid.vrepo.domain.repositories.LocationRepository
 import com.spmadrid.vrepo.domain.repositories.ServerInfoRepository
+import com.spmadrid.vrepo.domain.repositories.UserSummaryRepository
 import com.spmadrid.vrepo.domain.services.LocationManagerService
 import com.spmadrid.vrepo.domain.services.TokenManagerService
+import com.spmadrid.vrepo.presentation.viewmodel.RealtimeNotificationViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -64,10 +67,25 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideWebSocketRepository(
+        @ApplicationContext context: Context,
         ktorClientProvider: KtorClientProvider,
         locationManagerService: LocationManagerService,
-        tokenManagerService: TokenManagerService
+        tokenManagerService: TokenManagerService,
     ): WebSocketRepository {
-        return WebSocketRepository(ktorClientProvider, locationManagerService, tokenManagerService)
+        return WebSocketRepository(
+            context,
+            ktorClientProvider,
+            locationManagerService,
+            tokenManagerService,
+        )
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideUserSummaryRepository(
+        ktorClientProvider: KtorClientProvider
+    ): UserSummaryRepository {
+        return UserSummaryRepositoryImpl(ktorClientProvider)
     }
 }

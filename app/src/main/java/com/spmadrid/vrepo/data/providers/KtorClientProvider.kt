@@ -52,11 +52,10 @@ class KtorClientProvider @Inject constructor(
         return HttpClient(CIO) {
             defaultRequest {
                 host = Constants.SERVER_URL
-//                host = "elephant-humble-herring.ngrok-free.app"
-                port = 8000
-                url {
-                    protocol = URLProtocol.HTTP
-                }
+                port = Constants.SERVER_PORT
+//                url {
+//                    protocol = URLProtocol.HTTPS
+//                }
             }
             install(WebSockets) {
                 pingIntervalMillis = PING_WEBSOCKET_INTERVAL

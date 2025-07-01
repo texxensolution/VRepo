@@ -19,7 +19,8 @@ import com.spmadrid.vrepo.presentation.ui.theme.Neutral800
 fun BottomNavigationBar(navController: NavController) {
     val items = listOf(
         BottomNavItem.Home,
-        BottomNavItem.Conduction
+        BottomNavItem.Conduction,
+//        BottomNavItem.CommandCenter
     )
     NavigationBar(
         containerColor = Color.White,

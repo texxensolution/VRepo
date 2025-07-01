@@ -14,19 +14,21 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class DeviceTrackingViewModel @Inject constructor(
+class PersistentSocketViewModel @Inject constructor(
     private val webSocketRepository: WebSocketRepository
 ) : ViewModel() {
     private val scope = CoroutineScope(Dispatchers.IO)
     val isConnected: StateFlow<Boolean> = webSocketRepository.isConnected
 
-    fun startTracking() {
+    val incomingMessages = webSocketRepository.incomingMessages
+
+    fun startPersistentConnection() {
         scope.launch {
             webSocketRepository.connect()
         }
     }
 
-    fun stopTracking() {
+    fun stopPersistentConnection() {
         scope.launch {
             webSocketRepository.disconnect()
         }

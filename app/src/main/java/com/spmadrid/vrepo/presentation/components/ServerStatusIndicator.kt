@@ -22,16 +22,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.spmadrid.vrepo.domain.services.ServerInfoService
-import com.spmadrid.vrepo.presentation.viewmodel.DeviceTrackingViewModel
+import com.spmadrid.vrepo.presentation.viewmodel.PersistentSocketViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun ServerStatusIndicator(
     isFullscreen: Boolean,
     modifier: Modifier,
-    deviceTrackingViewModel: DeviceTrackingViewModel
+    persistentSocketViewModel: PersistentSocketViewModel
 ) {
-    val isConnected by deviceTrackingViewModel.isConnected.collectAsState(initial = false)
+    val isConnected by persistentSocketViewModel.isConnected.collectAsState(initial = false)
 
     if (!isFullscreen) {
         Box(

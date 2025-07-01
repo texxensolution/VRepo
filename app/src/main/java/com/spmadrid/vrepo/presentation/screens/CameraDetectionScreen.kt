@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.camera.camera2.interop.Camera2CameraControl
 import androidx.camera.camera2.interop.CaptureRequestOptions
@@ -68,15 +69,22 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.spmadrid.vrepo.camera.ObjectDetectionAnalyzer
 import com.spmadrid.vrepo.domain.dtos.DetectedTextResult
 import com.spmadrid.vrepo.domain.interfaces.IObjectDetector
+import com.spmadrid.vrepo.domain.repositories.UserSummaryRepository
 import com.spmadrid.vrepo.domain.services.LocationManagerService
 import com.spmadrid.vrepo.presentation.components.OpenStreetMapView
 import com.spmadrid.vrepo.presentation.components.ServerStatusIndicator
 import com.spmadrid.vrepo.presentation.components.ShiningFloatingNotification
+import com.spmadrid.vrepo.presentation.components.SummaryOverlay
+import com.spmadrid.vrepo.presentation.components.UrgentFloatingNotification
 import com.spmadrid.vrepo.presentation.ui.theme.Gray600
 import com.spmadrid.vrepo.presentation.viewmodel.AuthenticateViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.CameraViewModel
-import com.spmadrid.vrepo.presentation.viewmodel.DeviceTrackingViewModel
+import com.spmadrid.vrepo.presentation.viewmodel.PersistentSocketViewModel
+import com.spmadrid.vrepo.presentation.viewmodel.RealtimeNotificationViewModel
 import com.spmadrid.vrepo.presentation.viewmodel.UserInterfaceStateViewModel
+import com.spmadrid.vrepo.utils.playSoundAndVibrate
+import com.spmadrid.vrepo.utils.repeatSoundAndVibrateSmoothlyFor30Sec
+//import com.spmadrid.vrepo.utils.playSoundQueued
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Compress
@@ -85,6 +93,9 @@ import compose.icons.fontawesomeicons.solid.Eye
 import compose.icons.fontawesomeicons.solid.EyeSlash
 import compose.icons.fontawesomeicons.solid.PowerOff
 import compose.icons.fontawesomeicons.solid.WindowRestore
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -95,33 +106,37 @@ fun CameraDetectionScreen(
     objectDetector: IObjectDetector,
     cameraViewModel: CameraViewModel,
     authViewModel: AuthenticateViewModel,
-    deviceTrackingViewModel: DeviceTrackingViewModel,
+    persistentSocketViewModel: PersistentSocketViewModel,
     userInterfaceStateViewModel: UserInterfaceStateViewModel,
     locationManagerService: LocationManagerService,
-    triggerPictureInPictureMode: () -> Unit
+    triggerPictureInPictureMode: () -> Unit,
+    userSummaryRepository: UserSummaryRepository
 ) {
         CameraDetectionContent(
             objectDetector,
             cameraViewModel = cameraViewModel,
             authViewModel = authViewModel,
-            deviceTrackingViewModel = deviceTrackingViewModel,
+            persistentSocketViewModel = persistentSocketViewModel,
             userInterfaceStateViewModel = userInterfaceStateViewModel,
             locationManagerService = locationManagerService,
-            triggerPictureInPictureMode = triggerPictureInPictureMode
+            triggerPictureInPictureMode = triggerPictureInPictureMode,
+            userSummaryRepository = userSummaryRepository
         )
 }
 
 
+@kotlin.OptIn(FlowPreview::class)
 @SuppressLint("StateFlowValueCalledInComposition", "ClickableViewAccessibility")
 @Composable
 private fun CameraDetectionContent(
     objectDetector: IObjectDetector,
     cameraViewModel: CameraViewModel,
     authViewModel: AuthenticateViewModel,
-    deviceTrackingViewModel: DeviceTrackingViewModel,
+    persistentSocketViewModel: PersistentSocketViewModel,
     userInterfaceStateViewModel: UserInterfaceStateViewModel,
     locationManagerService: LocationManagerService,
-    triggerPictureInPictureMode: () -> Unit
+    triggerPictureInPictureMode: () -> Unit,
+    userSummaryRepository: UserSummaryRepository
 ) {
     val scope = rememberCoroutineScope()
     var isFullscreen by remember { mutableStateOf(false) }
@@ -129,6 +144,8 @@ private fun CameraDetectionContent(
     var showDialog by remember { mutableStateOf(false) }
     var isAutoZoomEnabled by remember { mutableStateOf(false) }
     val previewViewRef = remember { mutableStateOf<PreviewView?>(null) }
+    var isBuzzed by remember { mutableStateOf(false) }
+
     val notification by cameraViewModel.notification.collectAsState()
     val showNotification by cameraViewModel.showNotification.collectAsState()
     val detectedText by cameraViewModel.detectedText.collectAsState()
@@ -140,6 +157,18 @@ private fun CameraDetectionContent(
     val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
     val cameraController: LifecycleCameraController = remember { LifecycleCameraController(context) }
     val window = (context as? android.app.Activity)?.window
+
+    LaunchedEffect(Unit) {
+        persistentSocketViewModel.incomingMessages
+            .collect { incomingMessage ->
+                isBuzzed = true
+
+                delay(10_000)
+
+                isBuzzed = false
+                Log.d("Notification:Incoming-Message", incomingMessage)
+            }
+    }
 
     LaunchedEffect(isAutoZoomEnabled) {
         Log.d("RerenderAutoZoom", isAutoZoomEnabled.toString())
@@ -168,6 +197,18 @@ private fun CameraDetectionContent(
         modifier = Modifier
             .fillMaxSize()
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(15f),
+            contentAlignment = Alignment.Center
+        ) {
+            UrgentFloatingNotification(
+                context = context,
+                showNotification = isBuzzed
+            )
+        }
+
         Box(
             modifier = Modifier
                 .then(
@@ -290,6 +331,8 @@ private fun CameraDetectionContent(
             }
         }
 
+
+
         notification?.let {
             if (it.priority == "MEDIUM" || it.priority == "HIGH") {
                 ShiningFloatingNotification(
@@ -319,7 +362,7 @@ private fun CameraDetectionContent(
                                 RoundedCornerShape(10.dp)
                             ),
     //                    serverInfoService = serverInfoService
-                        deviceTrackingViewModel = deviceTrackingViewModel
+                        persistentSocketViewModel = persistentSocketViewModel
                     )
                     Button(
                         onClick = {
@@ -423,6 +466,10 @@ private fun CameraDetectionContent(
                         )
                     }
                 }
+
+//                SummaryOverlay(
+//                    userSummaryRepository = userSummaryRepository
+//                )
             }
 
     //        logout dialog

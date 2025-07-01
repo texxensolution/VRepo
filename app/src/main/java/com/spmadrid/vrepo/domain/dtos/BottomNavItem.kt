@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Camera
+import compose.icons.fontawesomeicons.solid.Microphone
 import compose.icons.fontawesomeicons.solid.Search
 
 
@@ -14,4 +15,5 @@ sealed class BottomNavItem(
 ) {
     object Home : BottomNavItem("home", FontAwesomeIcons.Solid.Camera, "ALPR")
     object Conduction : BottomNavItem("conduction", FontAwesomeIcons.Solid.Search, "Manual Search")
+    object CommandCenter : BottomNavItem("command_center", FontAwesomeIcons.Solid.Microphone, "Command Center")
 }

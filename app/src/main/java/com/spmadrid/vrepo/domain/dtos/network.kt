@@ -20,10 +20,33 @@ data class AuthenticateResponse(
 data class Account(
     val plate_no: String,
     val vehicle_model: String,
+    val client: String,
     val ch_code: String,
     val endo_date: String,
     val priority: String,
+    val crm_code: String
 )
+
+
+//Response body
+//Download
+//{
+//    "plate": "LAC8530",
+//    "status": "FOR_CONFIRMATION",
+//    "detection_type": "plates",
+//    "accounts": [
+//    {
+//        "plate_no": "LAN8530",
+//        "vehicle_model": "Avanza 13 J  MT WHITE",
+//        "client": "TL3",
+//        "ch_code": "02TFSA2503-39067",
+//        "endo_date": "2025-03-28",
+//        "priority": "HIGH",
+//        "crm_code": "02TFSA2503-39067"
+//    }
+//    ],
+//    "count": 1
+//}
 
 @Serializable
 data class ClientDetailsResponse(

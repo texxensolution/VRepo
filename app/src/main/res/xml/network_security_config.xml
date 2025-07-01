@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+<!--    <base-config cleartextTrafficPermitted="true" />-->
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">58.97.187.251</domain>
-    </domain-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">18.139.223.83</domain>
-    </domain-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.1.5</domain>
-    </domain-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">52.220.158.128</domain>
+        <domain includeSubdomains="true">47.236.237.19</domain>
     </domain-config>
 </network-security-config>
